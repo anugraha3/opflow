@@ -1,0 +1,3366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>OpFlow - Smart Operations Manager</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-primary: #0a0e27;
+            --bg-secondary: #151933;
+            --bg-tertiary: #1e2340;
+            --accent-primary: #00d9ff;
+            --accent-secondary: #7b61ff;
+            --accent-gradient: linear-gradient(135deg, #00d9ff 0%, #7b61ff 100%);
+            --text-primary: #ffffff;
+            --text-secondary: #a0aec0;
+            --text-muted: #64748b;
+            --priority-high: #ff3864;
+            --priority-medium: #ffa500;
+            --priority-low: #00d9ff;
+            --success: #00e676;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(123, 97, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(0, 217, 255, 0.1) 0%, transparent 50%);
+            animation: backgroundFloat 20s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes backgroundFloat {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(5%, -5%) rotate(120deg); }
+            66% { transform: translate(-5%, 5%) rotate(240deg); }
+        }
+
+        .app-container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+
+        /* Header */
+        header {
+            padding: 0.75rem 1rem 0.75rem;
+            background: rgba(10, 14, 39, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-top {
+            margin-bottom: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .version-badge {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            padding: 0.35rem 0.75rem;
+            background: rgba(30, 35, 64, 0.6);
+            border: 1px solid rgba(0, 217, 255, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            line-height: 1.1;
+        }
+
+        .version-badge:hover {
+            background: rgba(30, 35, 64, 0.9);
+            border-color: rgba(0, 217, 255, 0.5);
+            transform: translateY(-1px);
+        }
+
+        .version-badge:active {
+            transform: translateY(0);
+        }
+
+        .version-number {
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .version-date {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .app-logo {
+            transition: transform 0.3s ease;
+            cursor: pointer;
+            width: 24px;
+            height: 24px;
+        }
+
+        .app-logo:hover {
+            transform: scale(1.1);
+        }
+
+        h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .stat-card {
+            background: rgba(30, 35, 64, 0.5);
+            padding: 0.5rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            background: rgba(30, 35, 64, 0.8);
+            transform: translateY(-2px);
+            border-color: rgba(0, 217, 255, 0.3);
+        }
+
+        .stat-card:active {
+            transform: translateY(0);
+        }
+
+        .stat-card.active {
+            background: var(--accent-gradient);
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(0, 217, 255, 0.3);
+        }
+
+        .stat-card.active .stat-label,
+        .stat-card.active .stat-value {
+            color: white;
+        }
+
+        .stat-label {
+            font-size: 0.55rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-bottom: 0.15rem;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+            line-height: 1;
+        }
+
+        .stat-value-high {
+            color: var(--priority-high);
+        }
+
+        .stat-card.active .stat-value-high {
+            color: white;
+        }
+
+        /* Controls */
+        .controls {
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .controls::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .controls::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .controls::-webkit-scrollbar-thumb {
+            background: rgba(0, 217, 255, 0.3);
+            border-radius: 2px;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            position: relative;
+            overflow: hidden;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: white;
+            box-shadow: 0 4px 20px rgba(0, 217, 255, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.95);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-icon {
+            width: 44px;
+            height: 44px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        /* Sort Controls */
+        .sort-controls {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        .sort-btn {
+            padding: 0.35rem 0.75rem;
+            background: rgba(30, 35, 64, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            color: var(--text-secondary);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .sort-btn:hover {
+            background: rgba(30, 35, 64, 0.9);
+            border-color: rgba(255, 255, 255, 0.15);
+            color: var(--text-primary);
+        }
+
+        .sort-btn:active {
+            transform: scale(0.96);
+        }
+
+        .sort-btn.active {
+            background: var(--accent-gradient);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(0, 217, 255, 0.3);
+        }
+
+        /* Task List */
+        .tasks-container {
+            padding: 0 1.5rem 2rem;
+        }
+
+        .section-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin: 2rem 0 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 16px;
+            background: var(--accent-gradient);
+            border-radius: 2px;
+        }
+
+        .task-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.25rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .task-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--accent-primary);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .task-item.priority-high::before {
+            background: var(--priority-high);
+            opacity: 1;
+        }
+
+        .task-item.priority-medium::before {
+            background: var(--priority-medium);
+            opacity: 1;
+        }
+
+        .task-item.priority-low::before {
+            background: var(--priority-low);
+            opacity: 1;
+        }
+
+        .task-item:active {
+            transform: scale(0.98);
+        }
+
+        .task-item.completed {
+            opacity: 0.6;
+            background: var(--bg-tertiary);
+        }
+
+        .task-item.completed .task-title {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
+        .task-header {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .task-checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .task-checkbox.checked {
+            background: var(--success);
+            border-color: var(--success);
+        }
+
+        .task-checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .task-select-checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--accent-primary);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 2px;
+            background: transparent;
+        }
+
+        .multi-select-mode .task-select-checkbox {
+            display: flex;
+        }
+
+        .task-select-checkbox.selected {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+        }
+
+        .task-select-checkbox.selected::after {
+            content: '✓';
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .bulk-edit-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 1rem;
+            display: none;
+            gap: 0.75rem;
+            align-items: center;
+            z-index: 200;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .bulk-edit-bar.active {
+            display: flex;
+        }
+
+        .bulk-edit-info {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .bulk-edit-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-left: auto;
+            flex-wrap: wrap;
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-title {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            line-height: 1.5;
+            margin-bottom: 0.5rem;
+        }
+
+        .task-notes {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-top: 0.5rem;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            border-left: 2px solid var(--accent-primary);
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 0.75rem;
+        }
+
+        .priority-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .priority-badge.high {
+            background: rgba(255, 56, 100, 0.15);
+            color: var(--priority-high);
+            border: 1px solid rgba(255, 56, 100, 0.3);
+        }
+
+        .priority-badge.medium {
+            background: rgba(255, 165, 0, 0.15);
+            color: var(--priority-medium);
+            border: 1px solid rgba(255, 165, 0, 0.3);
+        }
+
+        .priority-badge.low {
+            background: rgba(0, 217, 255, 0.15);
+            color: var(--priority-low);
+            border: 1px solid rgba(0, 217, 255, 0.3);
+        }
+
+        .business-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(123, 97, 255, 0.15);
+            color: var(--accent-secondary);
+            border: 1px solid rgba(123, 97, 255, 0.3);
+        }
+
+        .due-date-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(0, 230, 118, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(0, 230, 118, 0.3);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .due-date-badge:hover {
+            background: rgba(0, 230, 118, 0.25);
+            transform: scale(1.05);
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .task-action-btn {
+            padding: 0.25rem 0.5rem;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            z-index: 10;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .task-action-btn:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--accent-primary);
+            color: var(--text-primary);
+        }
+
+        .task-action-btn:active {
+            background: var(--bg-primary);
+            transform: scale(0.95);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            padding: 1rem;
+            overflow-y: auto;
+            animation: fadeIn 0.3s ease;
+            align-items: flex-start;
+            padding-top: 2rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal.active {
+            display: flex;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 85vh;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-lg);
+            animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            flex-shrink: 0;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            flex-shrink: 0;
+        }
+
+        /* Custom scrollbar for modal */
+        .modal-body::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .modal-body::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+            border-radius: 4px;
+        }
+
+        .modal-body::-webkit-scrollbar-thumb {
+            background: var(--accent-primary);
+            border-radius: 4px;
+        }
+
+        .modal-body::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-secondary);
+        }
+
+        /* Firefox scrollbar */
+        .modal-body {
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent-primary) var(--bg-primary);
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .close-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.25rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .close-btn:active {
+            transform: scale(0.9);
+            background: var(--bg-primary);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.1);
+        }
+
+        textarea.form-input {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .priority-options {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .priority-option {
+            flex: 1;
+            padding: 0.75rem;
+            background: var(--bg-primary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .priority-option.high {
+            color: var(--priority-high);
+        }
+
+        .priority-option.medium {
+            color: var(--priority-medium);
+        }
+
+        .priority-option.low {
+            color: var(--priority-low);
+        }
+
+        .priority-option.selected {
+            border-color: currentColor;
+            background: rgba(255, 255, 255, 0.05);
+            transform: scale(1.05);
+        }
+
+        /* Handwriting Canvas */
+        .canvas-container {
+            position: relative;
+            background: var(--bg-primary);
+            border-radius: 12px;
+            border: 2px dashed var(--border-color);
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        #handwritingCanvas {
+            display: block;
+            width: 100%;
+            touch-action: none;
+            cursor: crosshair;
+        }
+
+        .canvas-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .canvas-btn {
+            padding: 0.5rem 1rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .canvas-btn:active {
+            background: var(--bg-tertiary);
+            transform: scale(0.95);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+
+        /* Filter Menu */
+        .filter-menu {
+            padding: 1.5rem;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .filter-header h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .filter-clear-btn {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-clear-btn:active {
+            background: var(--bg-tertiary);
+        }
+
+        .filter-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .filter-chip {
+            padding: 0.5rem 1rem;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .filter-chip.active {
+            background: var(--accent-gradient);
+            border-color: transparent;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .filter-chip:active {
+            transform: scale(0.95);
+        }
+        .filter-chip {
+            -webkit-appearance: none;
+            appearance: none;
+            font-family: 'Outfit', sans-serif;
+        }
+        .btn:focus-visible,
+        .sort-btn:focus-visible,
+        .task-action-btn:focus-visible,
+        .canvas-btn:focus-visible,
+        .close-btn:focus-visible,
+        .filter-chip:focus-visible {
+            outline: 2px solid var(--accent-primary);
+            outline-offset: 2px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        .empty-text {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-subtext {
+            font-size: 0.9rem;
+        }
+
+        /* iPad Specific */
+        @media (min-width: 768px) {
+            .app-container {
+                padding: 2rem;
+            }
+
+            header {
+                padding: 1.5rem 2rem 1.25rem;
+            }
+
+            .header-top {
+                margin-bottom: 1.25rem;
+            }
+
+            .app-logo {
+                width: 32px;
+                height: 32px;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            .stats-grid {
+                gap: 0.75rem;
+                margin-bottom: 1.25rem;
+            }
+
+            .stat-card {
+                padding: 0.75rem;
+            }
+
+            .stat-label {
+                font-size: 0.65rem;
+                margin-bottom: 0.25rem;
+            }
+
+            .stat-value {
+                font-size: 1.75rem;
+            }
+
+            .sort-btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.8rem;
+            }
+
+            .controls {
+                padding: 1.25rem 2rem;
+            }
+
+            .btn {
+                padding: 0.65rem 1.25rem;
+                font-size: 0.9rem;
+            }
+
+            .tasks-container {
+                padding: 0 2rem 3rem;
+                columns: 2;
+                column-gap: 1.5rem;
+            }
+
+            .task-item {
+                break-inside: avoid;
+                margin-bottom: 1rem;
+            }
+
+            .section-title {
+                column-span: all;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .stat-value {
+                font-size: 2.25rem;
+            }
+
+            .tasks-container {
+                columns: 3;
+            }
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <div class="header-top">
+                <div class="logo-title">
+                    <svg class="app-logo" width="24" height="24" viewBox="0 0 32 32">
+                        <defs>
+                            <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#00d9ff;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#7b61ff;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <rect width="32" height="32" rx="6" fill="#1e2340"/>
+                        <rect x="6" y="8" width="17" height="3" rx="1.5" fill="url(#logoGradient)" opacity="1"/>
+                        <circle cx="25" cy="9.5" r="2.5" fill="#7b61ff"/>
+                        <rect x="6" y="14" width="13" height="3" rx="1.5" fill="url(#logoGradient)" opacity="0.7"/>
+                        <circle cx="21" cy="15.5" r="2.5" fill="#7b61ff" opacity="0.7"/>
+                        <rect x="6" y="20" width="9" height="3" rx="1.5" fill="url(#logoGradient)" opacity="0.4"/>
+                        <circle cx="17" cy="21.5" r="2.5" fill="#7b61ff" opacity="0.4"/>
+                    </svg>
+                    <h1>OpFlow</h1>
+                </div>
+                <div class="version-badge" onclick="showVersionInfo()" title="Tap for version details">
+                    <span class="version-number">v1.0.1</span>
+                    <span class="version-date">Apr 23, 2026 · patched</span>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card" onclick="filterByStatus('all')" id="statAll">
+                    <div class="stat-label">Total</div>
+                    <div class="stat-value" id="totalTasks">0</div>
+                </div>
+                <div class="stat-card" onclick="filterByStatus('active')" id="statActive">
+                    <div class="stat-label">Active</div>
+                    <div class="stat-value" id="activeTasks">0</div>
+                </div>
+                <div class="stat-card" onclick="filterByStatus('completed')" id="statCompleted">
+                    <div class="stat-label">Completed</div>
+                    <div class="stat-value" id="completedTasks">0</div>
+                </div>
+                <div class="stat-card" onclick="filterByStatus('high')" id="statHigh">
+                    <div class="stat-label">High Priority</div>
+                    <div class="stat-value stat-value-high" id="highPriority">0</div>
+                </div>
+            </div>
+
+            <div class="sort-controls">
+                <button class="sort-btn active" onclick="sortTasks('priority', this)">Priority</button>
+                <button class="sort-btn" onclick="sortTasks('business', this)">Business Line</button>
+                <button class="sort-btn" onclick="sortTasks('status', this)">Status</button>
+                <button class="sort-btn" onclick="sortTasks('date', this)">Date</button>
+            </div>
+        </header>
+
+        <div class="controls">
+            <button class="btn btn-primary" onclick="openAddTaskModal()">
+                <span>➕</span>
+                <span>Add Task</span>
+            </button>
+            <button class="btn btn-secondary" onclick="openHandwritingModal()">
+                <span>✍️</span>
+                <span>Write</span>
+            </button>
+            <button class="btn btn-secondary" onclick="toggleMultiSelect()" id="multiSelectBtn">
+                <span>☑️</span>
+                <span>Select</span>
+            </button>
+            <button class="btn btn-secondary" onclick="toggleFilterMenu()">
+                <span>🔍</span>
+                <span>Filter</span>
+            </button>
+            <button class="btn btn-secondary" onclick="clearCompleted()">
+                <span>🗑️</span>
+                <span>Clear Done</span>
+            </button>
+            <button class="btn btn-primary" onclick="smartSync()" style="background: linear-gradient(135deg, #00e676 0%, #00d9ff 100%); box-shadow: 0 4px 20px rgba(0, 230, 118, 0.3);">
+                <span>☁️</span>
+                <span>Sync</span>
+            </button>
+            <button class="btn btn-secondary" onclick="loadFromSyncFile()">
+                <span>📥</span>
+                <span>Load</span>
+            </button>
+            <button class="btn btn-secondary" onclick="showSyncSetupGuide()">
+                <span>ℹ️</span>
+                <span>Setup</span>
+            </button>
+        </div>
+
+        <!-- Sync Status Bar -->
+        <div id="syncStatusBar" style="padding: 0.5rem 1.5rem; font-size: 0.8rem; font-family: 'Outfit', sans-serif; text-align: right;">
+            <span id="syncStatusMain" data-sync-status style="color: #64748b;">Checking sync status...</span>
+        </div>
+
+        <!-- Filter Menu -->
+        <div class="filter-menu" id="filterMenu" style="display: none;">
+            <div class="filter-header">
+                <h3>Filter by Business Line</h3>
+                <button class="filter-clear-btn" onclick="clearFilters()">Clear All</button>
+            </div>
+            <div class="filter-chips" id="filterChips"></div>
+        </div>
+
+        <div class="tasks-container" id="tasksContainer">
+            <div class="empty-state">
+                <div class="empty-icon">📝</div>
+                <div class="empty-text">No tasks yet</div>
+                <div class="empty-subtext">Add your first task to get started</div>
+            </div>
+        </div>
+
+        <!-- Bulk Edit Bar -->
+        <div class="bulk-edit-bar" id="bulkEditBar">
+            <div class="bulk-edit-info">
+                <span id="selectedCount">0</span> selected
+            </div>
+            <div class="bulk-edit-actions">
+                <button class="btn btn-secondary" onclick="bulkEdit()">
+                    <span>✏️</span>
+                    <span>Edit</span>
+                </button>
+                <button class="btn btn-secondary" onclick="bulkDelete()">
+                    <span>🗑️</span>
+                    <span>Delete</span>
+                </button>
+                <button class="btn btn-secondary" onclick="cancelMultiSelect()">
+                    <span>✕</span>
+                    <span>Cancel</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Edit Modal -->
+    <div class="modal" id="bulkEditModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Bulk Edit Tasks</h2>
+                <button class="close-btn" onclick="closeModal('bulkEditModal')">×</button>
+            </div>
+            <form onsubmit="applyBulkEdit(event)" style="display: flex; flex-direction: column; height: 100%; min-height: 0;">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Update Priority</label>
+                        <div class="priority-options">
+                            <div class="priority-option high" data-priority="high" onclick="selectBulkPriority('high', this)">
+                                🔴 High
+                            </div>
+                            <div class="priority-option medium" data-priority="medium" onclick="selectBulkPriority('medium', this)">
+                                🟡 Medium
+                            </div>
+                            <div class="priority-option low" data-priority="low" onclick="selectBulkPriority('low', this)">
+                                🔵 Low
+                            </div>
+                            <div class="priority-option" data-priority="" onclick="selectBulkPriority('', this)" style="color: var(--text-muted)">
+                                — No Change
+                            </div>
+                        </div>
+                        <input type="hidden" id="bulkPriority" value="">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Update Business Line</label>
+                        <select class="form-input" id="bulkBusinessLine">
+                            <option value="">— No Change</option>
+                            <option value="ESP">ESP</option>
+                            <option value="PCP">PCP</option>
+                            <option value="CPS">CPS</option>
+                            <option value="TLM">TLM</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div style="display: flex; gap: 0.75rem;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('bulkEditModal')" style="flex: 1;">
+                            <span>✕</span>
+                            <span>Cancel</span>
+                        </button>
+                        <button type="submit" class="btn btn-primary" style="flex: 2;">
+                            <span>✓</span>
+                            <span>Apply Changes</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Task Modal -->
+    <div class="modal" id="editTaskModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Edit Task</h2>
+                <button class="close-btn" onclick="closeModal('editTaskModal')">×</button>
+            </div>
+            <form onsubmit="saveEditTask(event)" style="display: flex; flex-direction: column; height: 100%; min-height: 0;">
+                <div class="modal-body">
+                    <input type="hidden" id="editTaskId">
+                    <div class="form-group">
+                        <label class="form-label">Task Title</label>
+                        <input type="text" class="form-input" id="editTaskTitle" required placeholder="Enter task description...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Business Line</label>
+                        <select class="form-input" id="editTaskBusinessLine" required>
+                            <option value="">Select Business Line</option>
+                            <option value="ESP">ESP</option>
+                            <option value="PCP">PCP</option>
+                            <option value="CPS">CPS</option>
+                            <option value="TLM">TLM</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Notes (Optional)</label>
+                        <textarea class="form-input" id="editTaskNotes" placeholder="Add additional notes..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Target Completion Date (Optional)</label>
+                        <input type="date" class="form-input" id="editTaskDueDate">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Priority</label>
+                        <div class="priority-options">
+                            <div class="priority-option high" data-priority="high" onclick="selectEditPriority('high', this)">
+                                🔴 High
+                            </div>
+                            <div class="priority-option medium" data-priority="medium" onclick="selectEditPriority('medium', this)">
+                                🟡 Medium
+                            </div>
+                            <div class="priority-option low" data-priority="low" onclick="selectEditPriority('low', this)">
+                                🔵 Low
+                            </div>
+                        </div>
+                        <input type="hidden" id="editTaskPriority" value="medium">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div style="display: flex; gap: 0.75rem;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('editTaskModal')" style="flex: 1;">
+                            <span>✕</span>
+                            <span>Cancel</span>
+                        </button>
+                        <button type="submit" class="btn btn-primary" style="flex: 2;">
+                            <span>💾</span>
+                            <span>Save Changes</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Task Modal -->
+    <div class="modal" id="addTaskModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">New Task</h2>
+                <button class="close-btn" onclick="closeModal('addTaskModal')">×</button>
+            </div>
+            <form onsubmit="addTask(event)" style="display: flex; flex-direction: column; height: 100%; min-height: 0;">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Task Title</label>
+                        <input type="text" class="form-input" id="taskTitle" required placeholder="Enter task description...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Business Line</label>
+                        <select class="form-input" id="taskBusinessLine" required>
+                            <option value="">Select Business Line</option>
+                            <option value="ESP">ESP</option>
+                            <option value="PCP">PCP</option>
+                            <option value="CPS">CPS</option>
+                            <option value="TLM">TLM</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Notes (Optional)</label>
+                        <textarea class="form-input" id="taskNotes" placeholder="Add additional notes..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Target Completion Date (Optional)</label>
+                        <input type="date" class="form-input" id="taskDueDate">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Priority</label>
+                        <div class="priority-options">
+                            <div class="priority-option high" data-priority="high" onclick="selectPriority('high', this)">
+                                🔴 High
+                            </div>
+                            <div class="priority-option medium selected" data-priority="medium" onclick="selectPriority('medium', this)">
+                                🟡 Medium
+                            </div>
+                            <div class="priority-option low" data-priority="low" onclick="selectPriority('low', this)">
+                                🔵 Low
+                            </div>
+                        </div>
+                        <input type="hidden" id="taskPriority" value="medium">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div style="display: flex; gap: 0.75rem;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('addTaskModal')" style="flex: 1;">
+                            <span>✕</span>
+                            <span>Cancel</span>
+                        </button>
+                        <button type="submit" class="btn btn-primary" style="flex: 2;">
+                            <span>➕</span>
+                            <span>Add Task</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Handwriting Modal -->
+    <div class="modal" id="handwritingModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Handwriting Input</h2>
+                <button class="close-btn" onclick="closeModal('handwritingModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="canvas-controls">
+                    <button class="canvas-btn" onclick="clearCanvas()">🗑️ Clear</button>
+                    <button class="canvas-btn" onclick="undoCanvas()">↶ Undo</button>
+                    <button class="canvas-btn" onclick="changeCanvasColor('#00d9ff')">🔵 Blue</button>
+                    <button class="canvas-btn" onclick="changeCanvasColor('#ffffff')">⚪ White</button>
+                    <button class="canvas-btn" onclick="changeCanvasColor('#ff3864')">🔴 Red</button>
+                </div>
+                <div style="padding: 0.5rem; background: rgba(0,217,255,0.1); border-radius: 8px; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">
+                    💡 <strong>Tip:</strong> Write your task on the canvas, then type what you wrote in the text field below for best results.
+                </div>
+                <div class="canvas-container">
+                    <canvas id="handwritingCanvas" width="800" height="400"></canvas>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Converted Text</label>
+                    <textarea class="form-input" id="convertedText" placeholder="Write on the canvas above. You can edit the text here..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Business Line</label>
+                    <select class="form-input" id="handwritingBusinessLine" required>
+                        <option value="">Select Business Line</option>
+                        <option value="ESP">ESP</option>
+                        <option value="PCP">PCP</option>
+                        <option value="CPS">CPS</option>
+                        <option value="TLM">TLM</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Priority</label>
+                    <div class="priority-options">
+                        <div class="priority-option high" data-priority="high" onclick="selectHandwritingPriority('high', this)">
+                            🔴 High
+                        </div>
+                        <div class="priority-option medium selected" data-priority="medium" onclick="selectHandwritingPriority('medium', this)">
+                            🟡 Medium
+                        </div>
+                        <div class="priority-option low" data-priority="low" onclick="selectHandwritingPriority('low', this)">
+                            🔵 Low
+                        </div>
+                    </div>
+                    <input type="hidden" id="handwritingPriority" value="medium">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div style="display: flex; gap: 0.75rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('handwritingModal')" style="flex: 1;">
+                        <span>✕</span>
+                        <span>Cancel</span>
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="addHandwrittenTask()" style="flex: 2;">
+                        <span>➕</span>
+                        <span>Add Task</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Security utilities
+        function escapeHtml(text) {
+            if (text === null || text === undefined) return '';
+            const div = document.createElement('div');
+            div.textContent = String(text);
+            return div.innerHTML;
+        }
+        
+        function escapeIcsText(text) {
+            if (text === null || text === undefined) return '';
+            return String(text)
+                .replace(/\\/g, '\\\\')
+                .replace(/;/g, '\\;')
+                .replace(/,/g, '\\,')
+                .replace(/\n/g, '\\n')
+                .replace(/\r/g, '');
+        }
+
+        // Initialize tasks from localStorage or use default tasks
+        // Initialize tasks - will be loaded from storage or use defaults
+        let tasks = (() => {
+            try {
+                const stored = localStorage.getItem('opflow_tasks_v1');
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    if (parsed.tasks && Array.isArray(parsed.tasks)) {
+                        return parsed.tasks;
+                    }
+                }
+            } catch (e) {}
+            return [];
+        })();
+
+        let currentSort = 'priority';
+        let selectedPriorityValue = 'medium';
+        let handwritingPriorityValue = 'medium';
+        let activeFilters = new Set();
+        let multiSelectMode = false;
+        let selectedTasks = new Set();
+        let bulkPriorityValue = '';
+        let statusFilter = 'all'; // all, active, completed, high
+
+        const ALLOWED_PRIORITIES = new Set(['high', 'medium', 'low']);
+        const MAX_TITLE_LENGTH = 300;
+        const MAX_NOTES_LENGTH = 5000;
+        const MAX_BUSINESS_LINE_LENGTH = 60;
+
+        function clampText(value, maxLength = 1000) {
+            if (value === null || value === undefined) return '';
+            return String(value).replace(/[\u0000-\u001F\u007F]/g, ' ').trim().slice(0, maxLength);
+        }
+
+        function normalizePriority(value) {
+            const normalized = String(value || '').toLowerCase();
+            return ALLOWED_PRIORITIES.has(normalized) ? normalized : 'medium';
+        }
+
+        function normalizeBusinessLine(value) {
+            return clampText(value, MAX_BUSINESS_LINE_LENGTH);
+        }
+
+        function normalizeDueDate(value) {
+            const text = String(value || '').trim();
+            if (!text) return '';
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return '';
+            const date = new Date(text + 'T00:00:00');
+            return Number.isNaN(date.getTime()) ? '' : text;
+        }
+
+        function generateTaskId() {
+            if (window.crypto && window.crypto.getRandomValues) {
+                const arr = new Uint32Array(1);
+                window.crypto.getRandomValues(arr);
+                return Number(`${Date.now()}${arr[0] % 1000}`);
+            }
+            return Date.now() + Math.floor(Math.random() * 1000);
+        }
+
+        function normalizeTask(rawTask = {}) {
+            const title = clampText(rawTask.title, MAX_TITLE_LENGTH);
+            if (!title) return null;
+
+            const idCandidate = Number(rawTask.id);
+            const createdAtValue = rawTask.createdAt && !Number.isNaN(new Date(rawTask.createdAt).getTime()) ? new Date(rawTask.createdAt).toISOString() : new Date().toISOString();
+
+            return {
+                id: Number.isFinite(idCandidate) ? idCandidate : generateTaskId(),
+                title,
+                notes: clampText(rawTask.notes, MAX_NOTES_LENGTH),
+                priority: normalizePriority(rawTask.priority),
+                businessLine: normalizeBusinessLine(rawTask.businessLine),
+                dueDate: normalizeDueDate(rawTask.dueDate),
+                completed: Boolean(rawTask.completed),
+                createdAt: createdAtValue
+            };
+        }
+
+        function normalizeTaskList(rawTasks) {
+            const seen = new Set();
+            const safeTasks = [];
+            (Array.isArray(rawTasks) ? rawTasks : []).forEach(rawTask => {
+                const task = normalizeTask(rawTask);
+                if (!task) return;
+                while (seen.has(task.id)) {
+                    task.id = generateTaskId();
+                }
+                seen.add(task.id);
+                safeTasks.push(task);
+            });
+            return safeTasks;
+        }
+
+        function updatePrioritySelection(containerId, priority, triggerEl = null) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.querySelectorAll('.priority-option').forEach(opt => { opt.classList.remove('selected'); });
+            let activeOption = triggerEl;
+            if (!activeOption) {
+                activeOption = container.querySelector(`.priority-option[data-priority="${priority}"]`);
+            }
+            if (activeOption) activeOption.classList.add('selected');
+        }
+
+        tasks = normalizeTaskList(tasks);
+
+        // ===== SMART SYNC SYSTEM =====
+        // Strategy: Since iOS Safari cannot auto-write to iCloud Drive directly,
+        // we use an optimized workflow:
+        // 1. Local storage for instant persistence
+        // 2. Smart sync prompts at intervals
+        // 3. iOS Share Sheet for 1-tap save to iCloud
+        // 4. Auto-load from shared files
+        // 5. Conflict detection via timestamps
+        
+        const STORAGE_KEY = 'opflow_tasks_v1';
+        const SYNC_META_KEY = 'opflow_sync_meta';
+        const SYNC_FILENAME = 'opflow-data.json';
+        
+        // Sync thresholds
+        const SYNC_CHANGE_THRESHOLD = 10; // Prompt after 10 changes
+        const SYNC_TIME_THRESHOLD = 30 * 60 * 1000; // Or 30 minutes
+        
+        let syncInProgress = false;
+        let changesSinceLastSync = 0;
+        let lastSyncTime = null;
+        let lastSyncPromptTime = Date.now();
+
+        // Load sync metadata
+        function loadSyncMeta() {
+            try {
+                const meta = localStorage.getItem(SYNC_META_KEY);
+                if (meta) {
+                    const parsed = JSON.parse(meta);
+                    lastSyncTime = parsed.lastSyncTime || null;
+                    changesSinceLastSync = parsed.changesSinceLastSync || 0;
+                }
+            } catch (e) {}
+        }
+
+        function saveSyncMeta() {
+            try {
+                localStorage.setItem(SYNC_META_KEY, JSON.stringify({
+                    lastSyncTime: lastSyncTime,
+                    changesSinceLastSync: changesSinceLastSync
+                }));
+            } catch (e) {}
+        }
+
+        // Save tasks to local browser storage
+        async function syncToICloud() {
+            if (syncInProgress) return;
+            
+            try {
+                syncInProgress = true;
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    tasks: tasks,
+                    lastModified: new Date().toISOString(),
+                    version: 1
+                }));
+                
+                changesSinceLastSync++;
+                saveSyncMeta();
+                updateSyncStatus();
+                checkSyncPrompt();
+            } catch (error) {
+                showConfirmDialog(
+                    'Storage Error',
+                    'Unable to save data. Your browser storage may be full or disabled.',
+                    null,
+                    { type: 'warning' }
+                );
+            } finally {
+                syncInProgress = false;
+            }
+        }
+
+        // Load tasks from local browser storage
+        async async function loadFromICloud() {
+            try {
+                const data = localStorage.getItem(STORAGE_KEY);
+                if (data) {
+                    const parsed = JSON.parse(data);
+                    if (parsed && Array.isArray(parsed.tasks)) {
+                        tasks = normalizeTaskList(parsed.tasks);
+                        return true;
+                    }
+                }
+            } catch (error) {}
+            return false;
+        }
+
+        // Check if we should prompt user to sync
+        function checkSyncPrompt() {
+            const now = Date.now();
+            const timeSincePrompt = now - lastSyncPromptTime;
+            const shouldPromptByChanges = changesSinceLastSync >= SYNC_CHANGE_THRESHOLD;
+            const shouldPromptByTime = lastSyncTime && (now - new Date(lastSyncTime).getTime()) >= SYNC_TIME_THRESHOLD;
+            
+            // Don't prompt too frequently (max once every 5 minutes)
+            if (timeSincePrompt < 5 * 60 * 1000) return;
+            
+            if (shouldPromptByChanges || shouldPromptByTime) {
+                lastSyncPromptTime = now;
+                showSyncReminderDialog();
+            }
+        }
+
+        // Update sync status indicator in UI
+        function updateSyncStatus() {
+            const statusEls = document.querySelectorAll('[data-sync-status]');
+            if (!statusEls.length) return;
+
+            let message = '';
+            let color = '#64748b';
+
+            if (!lastSyncTime) {
+                message = '⚠️ Not backed up yet';
+                color = '#ffa500';
+            } else {
+                const elapsed = Date.now() - new Date(lastSyncTime).getTime();
+                const minutes = Math.floor(elapsed / 60000);
+                const hours = Math.floor(minutes / 60);
+                const days = Math.floor(hours / 24);
+
+                let timeAgo;
+                if (days > 0) timeAgo = `${days}d ago`;
+                else if (hours > 0) timeAgo = `${hours}h ago`;
+                else if (minutes > 0) timeAgo = `${minutes}m ago`;
+                else timeAgo = 'just now';
+
+                const pendingChanges = changesSinceLastSync > 0 ? ` (${changesSinceLastSync} pending)` : '';
+                message = `✓ Synced ${timeAgo}${pendingChanges}`;
+                color = changesSinceLastSync > 0 ? '#ffa500' : '#00e676';
+            }
+
+            statusEls.forEach(statusEl => {
+                statusEl.innerHTML = message;
+                statusEl.style.color = color;
+            });
+        }
+
+        // Smart sync using Web Share API (iOS Share Sheet) with fallback to download
+        // Auto-sync debounce timer
+        let autoSyncTimer = null;
+        const AUTO_SYNC_DELAY = 30000; // 30 seconds after last change
+
+        // Toast notification system for non-intrusive feedback
+        function showToast(message, type = 'info', duration = 3000) {
+            // Remove existing toast
+            const existing = document.getElementById('opflowToast');
+            if (existing) existing.remove();
+            
+            const colors = {
+                success: 'linear-gradient(135deg, #00e676 0%, #00d9ff 100%)',
+                info: 'linear-gradient(135deg, #00d9ff 0%, #7b61ff 100%)',
+                warning: 'linear-gradient(135deg, #ffa500 0%, #ffcc00 100%)',
+                error: 'linear-gradient(135deg, #ff3864 0%, #ff6b9d 100%)'
+            };
+            
+            const toast = document.createElement('div');
+            toast.id = 'opflowToast';
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 2rem;
+                left: 50%;
+                transform: translateX(-50%) translateY(100px);
+                background: ${colors[type] || colors.info};
+                color: white;
+                padding: 0.75rem 1.5rem;
+                border-radius: 24px;
+                font-family: 'Outfit', sans-serif;
+                font-size: 0.9rem;
+                font-weight: 600;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                z-index: 10000;
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                max-width: 90%;
+                text-align: center;
+            `;
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            // Animate in
+            requestAnimationFrame(() => {
+                toast.style.transform = 'translateX(-50%) translateY(0)';
+            });
+            
+            // Auto-remove
+            setTimeout(() => {
+                toast.style.transform = 'translateX(-50%) translateY(100px)';
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+
+        // Schedule auto-sync after user makes changes
+        function scheduleAutoSync() {
+            if (autoSyncTimer) clearTimeout(autoSyncTimer);
+            
+            autoSyncTimer = setTimeout(() => {
+                // Only auto-sync if we have pending changes
+                if (changesSinceLastSync > 0) {
+                    // Show subtle toast instead of dialog
+                    showToast('💡 ' + changesSinceLastSync + ' changes pending - tap Sync to backup', 'info', 4000);
+                }
+            }, AUTO_SYNC_DELAY);
+        }
+
+        async function smartSync() {
+            try {
+                const data = {
+                    tasks: tasks,
+                    exportDate: new Date().toISOString(),
+                    version: 1,
+                    appName: 'OpFlow'
+                };
+                
+                const jsonString = JSON.stringify(data, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const file = new File([blob], SYNC_FILENAME, { type: 'application/json' });
+                
+                let syncMethod = null;
+                
+                // Method 1: Web Share API with files (iOS native share sheet)
+                if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share({
+                            files: [file],
+                            title: 'OpFlow Sync'
+                        });
+                        syncMethod = 'share';
+                    } catch (shareError) {
+                        if (shareError.name === 'AbortError') {
+                            return; // User cancelled
+                        }
+                    }
+                }
+                
+                // Method 2: Direct download
+                if (!syncMethod) {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = SYNC_FILENAME;
+                    link.style.display = 'none';
+                    document.body.appendChild(link);
+                    link.click();
+                    
+                    setTimeout(() => {
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+                    }, 100);
+                    
+                    syncMethod = 'download';
+                }
+                
+                // Mark as synced
+                lastSyncTime = new Date().toISOString();
+                changesSinceLastSync = 0;
+                saveSyncMeta();
+                updateSyncStatus();
+                
+                // Show subtle toast instead of blocking dialog
+                if (syncMethod === 'share') {
+                    showToast('✓ Saved to cloud folder', 'success');
+                } else {
+                    showToast('✓ Downloaded to Files/Downloads', 'success');
+                }
+            } catch (error) {
+                showToast('⚠ Sync failed - try again', 'error');
+                // Fallback to manual copy
+                showManualCopyDialog(JSON.stringify({
+                    tasks: tasks,
+                    exportDate: new Date().toISOString(),
+                    version: 1,
+                    appName: 'OpFlow'
+                }, null, 2));
+            }
+        }
+
+        // Manual copy dialog - ultimate fallback if all sync methods fail
+        function showManualCopyDialog(jsonString) {
+            const existing = document.getElementById('customConfirmDialog');
+            if (existing) existing.remove();
+            
+            const dialog = document.createElement('div');
+            dialog.id = 'customConfirmDialog';
+            dialog.style.cssText = `
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px);
+                z-index: 9999; display: flex; align-items: center; justify-content: center;
+                padding: 1rem;
+            `;
+            
+            dialog.innerHTML = `
+                <div style="background: #151933; border-radius: 20px; padding: 1.5rem; max-width: 500px; width: 100%; max-height: 85vh; display: flex; flex-direction: column; border: 1px solid rgba(0, 217, 255, 0.3);">
+                    <h3 style="color: #ffa500; font-size: 1.25rem; margin-bottom: 0.75rem; font-family: 'Outfit', sans-serif;">📋 Manual Backup</h3>
+                    <p style="color: #a0aec0; margin-bottom: 1rem; line-height: 1.5; font-family: 'Outfit', sans-serif; font-size: 0.9rem;">Copy the text below and save it as <strong style="color: #fff;">opflow-data.json</strong> in your cloud folder.</p>
+                    <textarea id="manualCopyData" readonly style="flex: 1; background: #0a0e27; color: #00d9ff; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 0.75rem; font-family: monospace; font-size: 0.75rem; min-height: 200px; resize: none; overflow: auto;">${jsonString}</textarea>
+                    <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                        <button id="manualCopyBtn" type="button" style="flex: 1; padding: 0.75rem; background: linear-gradient(135deg, #00d9ff 0%, #7b61ff 100%); border: none; border-radius: 12px; color: white; font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer;">📋 Copy to Clipboard</button>
+                        <button id="manualCopyClose" type="button" style="flex: 1; padding: 0.75rem; background: #1e2340; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; color: white; font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer;">Close</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(dialog);
+            
+            document.getElementById('manualCopyBtn').addEventListener('click', async () => {
+                const textarea = document.getElementById('manualCopyData');
+                textarea.select();
+                try {
+                    await navigator.clipboard.writeText(jsonString);
+                    const btn = document.getElementById('manualCopyBtn');
+                    btn.innerHTML = '✓ Copied!';
+                    btn.style.background = '#00e676';
+                } catch (e) {
+                    // Fallback for older browsers
+                    document.execCommand('copy');
+                    const btn = document.getElementById('manualCopyBtn');
+                    btn.innerHTML = '✓ Copied!';
+                }
+            });
+            
+            document.getElementById('manualCopyClose').addEventListener('click', () => {
+                dialog.remove();
+            });
+        }
+
+        // Load from file - handles drag-drop, file picker, and file system share
+        async async function loadFromSyncFile() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json,application/json';
+
+            input.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                if (file.size > 5 * 1024 * 1024) {
+                    showConfirmDialog('File Too Large', 'Please select a file smaller than 5MB.', null, { type: 'warning' });
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const parsed = JSON.parse(event.target.result);
+                        if (!parsed || !Array.isArray(parsed.tasks)) {
+                            throw new Error('Invalid file format');
+                        }
+                        const validTasks = normalizeTaskList(parsed.tasks);
+                        checkSyncConflict(validTasks, parsed.exportDate);
+                    } catch (error) {
+                        showConfirmDialog('Invalid File', 'This is not a valid OpFlow backup file.', null, { type: 'warning' });
+                    }
+                };
+
+                reader.onerror = () => {
+                    showConfirmDialog('Read Error', 'Unable to read the file.', null, { type: 'warning' });
+                };
+
+                reader.readAsText(file);
+            });
+
+            input.click();
+        }
+
+        // Check for sync conflicts before overwriting
+        function checkSyncConflict(importedTasks, importDate) {
+            const currentModified = lastSyncTime ? new Date(lastSyncTime).getTime() : 0;
+            const importModified = importDate ? new Date(importDate).getTime() : 0;
+            
+            const localIsNewer = currentModified > importModified && changesSinceLastSync > 0;
+            
+            if (localIsNewer) {
+                // Warn user before overwriting newer local data
+                showImportConflictDialog(importedTasks, importDate);
+            } else {
+                // Import is newer or same - safe to load
+                showImportConfirmDialog(importedTasks);
+            }
+        }
+
+        function showImportConflictDialog(importedTasks, importDate) {
+            const existing = document.getElementById('customConfirmDialog');
+            if (existing) existing.remove();
+            
+            const dialog = document.createElement('div');
+            dialog.id = 'customConfirmDialog';
+            dialog.style.cssText = `
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px);
+                z-index: 9999; display: flex; align-items: center; justify-content: center;
+                padding: 1.5rem;
+            `;
+            
+            const importDateStr = new Date(importDate).toLocaleString();
+            const localDateStr = new Date(lastSyncTime).toLocaleString();
+            
+            dialog.innerHTML = `
+                <div style="background: #151933; border-radius: 20px; padding: 2rem; max-width: 420px; width: 100%; border: 2px solid #ffa500;">
+                    <h3 style="color: #ffa500; font-size: 1.25rem; margin-bottom: 1rem; font-family: 'Outfit', sans-serif;">⚠️ Sync Conflict Detected</h3>
+                    <p style="color: #a0aec0; margin-bottom: 1rem; line-height: 1.5; font-family: 'Outfit', sans-serif;">You have ${changesSinceLastSync} unsaved change(s) that are newer than the imported file.</p>
+                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.85rem; color: #a0aec0; font-family: 'Outfit', sans-serif;">
+                        <div><strong style="color: #00d9ff;">Local (newer):</strong> ${localDateStr}</div>
+                        <div style="margin-top: 0.5rem;"><strong style="color: #ffa500;">Import file:</strong> ${importDateStr}</div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <button id="conflictKeepLocal" type="button" style="padding: 0.75rem; background: linear-gradient(135deg, #00d9ff 0%, #7b61ff 100%); border: none; border-radius: 12px; color: white; font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer;">Keep My Local Changes</button>
+                        <button id="conflictUseImport" type="button" style="padding: 0.75rem; background: #ff3864; border: none; border-radius: 12px; color: white; font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer;">Overwrite with Import</button>
+                        <button id="conflictMerge" type="button" style="padding: 0.75rem; background: #1e2340; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; color: white; font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer;">Merge Both (Recommended)</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(dialog);
+            
+            document.getElementById('conflictKeepLocal').addEventListener('click', () => {
+                dialog.remove();
+            });
+            
+            document.getElementById('conflictUseImport').addEventListener('click', () => {
+                tasks = importedTasks;
+                lastSyncTime = new Date().toISOString();
+                changesSinceLastSync = 0;
+                saveTasks();
+                saveSyncMeta();
+                dialog.remove();
+            });
+            
+            document.getElementById('conflictMerge').addEventListener('click', () => {
+                const existingIds = new Set(tasks.map(t => t.id));
+                const newTasks = importedTasks.filter(t => !existingIds.has(t.id));
+                tasks = [...tasks, ...newTasks];
+                lastSyncTime = new Date().toISOString();
+                saveTasks();
+                saveSyncMeta();
+                dialog.remove();
+            });
+        }
+
+        // Sync reminder dialog
+        function showSyncReminderDialog() {
+            const existing = document.getElementById('customConfirmDialog');
+            if (existing) existing.remove();
+            
+            const dialog = document.createElement('div');
+            dialog.id = 'customConfirmDialog';
+            dialog.style.cssText = `
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px);
+                z-index: 9999; display: flex; align-items: center; justify-content: center;
+                padding: 1.5rem;
+            `;
+            
+            dialog.innerHTML = `
+                <div style="background: #151933; border-radius: 20px; padding: 2rem; max-width: 400px; width: 100%; border: 1px solid rgba(0, 217, 255, 0.3);">
+                    <h3 style="background: linear-gradient(135deg, #00d9ff 0%, #7b61ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.25rem; margin-bottom: 1rem; font-family: 'Outfit', sans-serif;">☁️ Time to Sync?</h3>
+                    <p style="color: #a0aec0; margin-bottom: 1.5rem; line-height: 1.5; font-family: 'Outfit', sans-serif;">You have ${changesSinceLastSync} unsaved change(s). Sync now to keep your tasks safe across devices.</p>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <button id="reminderSync" type="button" style="padding: 0.75rem; background: linear-gradient(135deg, #00d9ff 0%, #7b61ff 100%); border: none; border-radius: 12px; color: white; font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer;">☁️ Sync Now</button>
+                        <button id="reminderLater" type="button" style="padding: 0.75rem; background: #1e2340; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; color: white; font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer;">Remind Me Later</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(dialog);
+            
+            document.getElementById('reminderSync').addEventListener('click', () => {
+                dialog.remove();
+                smartSync();
+            });
+            
+            document.getElementById('reminderLater').addEventListener('click', () => {
+                dialog.remove();
+            });
+        }
+
+        function showImportConfirmDialog(importedTasks) {
+            const existing = document.getElementById('customConfirmDialog');
+            if (existing) existing.remove();
+            
+            const dialog = document.createElement('div');
+            dialog.id = 'customConfirmDialog';
+            dialog.style.cssText = `
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px);
+                z-index: 9999; display: flex; align-items: center; justify-content: center;
+                padding: 1.5rem;
+            `;
+            
+            dialog.innerHTML = `
+                <div style="background: #151933; border-radius: 20px; padding: 2rem; max-width: 400px; width: 100%; border: 1px solid rgba(255, 255, 255, 0.1);">
+                    <h3 style="background: linear-gradient(135deg, #00d9ff 0%, #7b61ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.25rem; margin-bottom: 1rem; font-family: 'Outfit', sans-serif;">📥 Load from Backup</h3>
+                    <p style="color: #a0aec0; margin-bottom: 1.5rem; line-height: 1.5; font-family: 'Outfit', sans-serif;">Found ${importedTasks.length} tasks in backup. How would you like to load them?</p>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <button id="importReplace" type="button" style="padding: 0.75rem; background: linear-gradient(135deg, #00d9ff 0%, #7b61ff 100%); border: none; border-radius: 12px; color: white; font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer;">🔄 Replace All (Sync from iCloud)</button>
+                        <button id="importMerge" type="button" style="padding: 0.75rem; background: #1e2340; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; color: white; font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer;">➕ Merge with Current</button>
+                        <button id="importCancel" type="button" style="padding: 0.75rem; background: transparent; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; color: #a0aec0; font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer;">Cancel</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(dialog);
+            
+            document.getElementById('importReplace').addEventListener('click', () => {
+                const count = importedTasks.length;
+                tasks = importedTasks;
+                lastSyncTime = new Date().toISOString();
+                changesSinceLastSync = 0;
+                saveSyncMeta();
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    tasks: tasks,
+                    lastModified: new Date().toISOString(),
+                    version: 1
+                }));
+                renderTasks();
+                updateStats();
+                updateSyncStatus();
+                dialog.remove();
+                showToast(`✓ Loaded ${count} tasks from cloud`, 'success');
+            });
+            
+            document.getElementById('importMerge').addEventListener('click', () => {
+                const existingIds = new Set(tasks.map(t => t.id));
+                const newTasks = importedTasks.filter(t => !existingIds.has(t.id));
+                const addedCount = newTasks.length;
+                tasks = [...tasks, ...newTasks];
+                lastSyncTime = new Date().toISOString();
+                saveSyncMeta();
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    tasks: tasks,
+                    lastModified: new Date().toISOString(),
+                    version: 1
+                }));
+                renderTasks();
+                updateStats();
+                updateSyncStatus();
+                dialog.remove();
+                showToast(`✓ Merged ${addedCount} new tasks`, 'success');
+            });
+            
+            document.getElementById('importCancel').addEventListener('click', () => {
+                dialog.remove();
+            });
+        }
+
+        // Setup instructions for user
+        // Version information
+        const APP_VERSION = {
+            number: 'v1.0.1',
+            date: 'Apr 23, 2026',
+            changelog: [
+                {
+                    version: 'v1.0.1',
+                    date: 'Apr 23, 2026',
+                    changes: [
+                        'Patched priority selection bugs across Add, Edit, Handwriting, and Bulk Edit',
+                        'Hardened imported/local task data with task normalization and validation',
+                        'Removed unsafe inline filter chip rendering to reduce injection risk',
+                        'Unified remaining native alert/confirm prompts into custom dialogs',
+                        'Fixed duplicate sync status hook and improved local save error handling'
+                    ]
+                },
+                {
+                    version: 'v1.0.0',
+                    date: 'Apr 23, 2026',
+                    changes: [
+                        'Added version tracking system',
+                        'Fixed date sorting - now sorts by due date (earliest first)',
+                        'Added smart date grouping (Overdue, Due Today, This Week, etc.)',
+                        'Added TLM as business line option',
+                        'Replaced blocking dialogs with smooth toast notifications',
+                        'Added auto-sync reminder after 30s of inactivity'
+                    ]
+                },
+                {
+                    version: 'v0.9.0',
+                    date: 'Apr 22, 2026',
+                    changes: [
+                        'Context-aware dialog system (danger/warning/success/info)',
+                        'Fixed delete button functionality',
+                        'Added sync conflict detection',
+                        'Added Google Drive / iCloud Drive integration'
+                    ]
+                },
+                {
+                    version: 'v0.8.0',
+                    date: 'Apr 21, 2026',
+                    changes: [
+                        'Added due date field and Apple Calendar export',
+                        'Added multi-select and bulk edit',
+                        'Added business line filtering',
+                        'Restructured modals with fixed header/footer'
+                    ]
+                },
+                {
+                    version: 'v0.7.0',
+                    date: 'Apr 20, 2026',
+                    changes: [
+                        'Initial release with handwriting input',
+                        'Priority-based task management',
+                        'Interactive dashboard with stat filters'
+                    ]
+                }
+            ]
+        };
+
+        function showVersionInfo() {
+            const existing = document.getElementById('customConfirmDialog');
+            if (existing) existing.remove();
+            
+            const dialog = document.createElement('div');
+            dialog.id = 'customConfirmDialog';
+            dialog.style.cssText = `
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px);
+                z-index: 9999; display: flex; align-items: center; justify-content: center;
+                padding: 1rem;
+            `;
+            
+            let changelogHtml = '';
+            APP_VERSION.changelog.forEach((release, index) => {
+                const isCurrent = index === 0;
+                changelogHtml += `
+                    <div style="
+                        background: ${isCurrent ? 'rgba(0, 217, 255, 0.08)' : 'rgba(30, 35, 64, 0.4)'};
+                        border-left: 3px solid ${isCurrent ? '#00d9ff' : '#7b61ff'};
+                        padding: 0.75rem 1rem;
+                        border-radius: 8px;
+                        margin-bottom: 0.75rem;
+                    ">
+                        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem;">
+                            <span style="
+                                font-family: 'JetBrains Mono', monospace;
+                                font-weight: 700;
+                                color: ${isCurrent ? '#00d9ff' : '#a0aec0'};
+                                font-size: 0.9rem;
+                            ">${release.version}${isCurrent ? ' • Current' : ''}</span>
+                            <span style="color: #64748b; font-size: 0.75rem;">${release.date}</span>
+                        </div>
+                        <ul style="
+                            margin: 0;
+                            padding-left: 1.25rem;
+                            color: #a0aec0;
+                            font-size: 0.85rem;
+                            line-height: 1.6;
+                        ">
+                            ${release.changes.map(c => `<li>${c}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            });
+            
+            dialog.innerHTML = `
+                <div style="
+                    background: #151933;
+                    border-radius: 20px;
+                    padding: 1.5rem;
+                    max-width: 500px;
+                    width: 100%;
+                    max-height: 85vh;
+                    display: flex;
+                    flex-direction: column;
+                    border: 1px solid rgba(0, 217, 255, 0.3);
+                ">
+                    <div style="
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 1rem;
+                        padding-bottom: 1rem;
+                        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                    ">
+                        <h3 style="
+                            background: linear-gradient(135deg, #00d9ff 0%, #7b61ff 100%);
+                            -webkit-background-clip: text;
+                            -webkit-text-fill-color: transparent;
+                            font-size: 1.25rem;
+                            font-family: 'Outfit', sans-serif;
+                            margin: 0;
+                        ">📋 Version History</h3>
+                        <span style="
+                            font-family: 'JetBrains Mono', monospace;
+                            color: #00d9ff;
+                            font-size: 0.85rem;
+                            font-weight: 700;
+                        ">${APP_VERSION.number}</span>
+                    </div>
+                    <div style="
+                        overflow-y: auto;
+                        flex: 1;
+                        padding-right: 0.5rem;
+                        margin-bottom: 1rem;
+                    ">
+                        ${changelogHtml}
+                    </div>
+                    <button id="versionClose" type="button" style="
+                        width: 100%;
+                        padding: 0.75rem;
+                        background: linear-gradient(135deg, #00d9ff 0%, #7b61ff 100%);
+                        border: none;
+                        border-radius: 12px;
+                        color: white;
+                        font-family: 'Outfit', sans-serif;
+                        font-size: 0.95rem;
+                        font-weight: 600;
+                        cursor: pointer;
+                    ">Close</button>
+                </div>
+            `;
+            
+            document.body.appendChild(dialog);
+            
+            document.getElementById('versionClose').addEventListener('click', () => {
+                dialog.remove();
+            });
+            
+            dialog.addEventListener('click', (e) => {
+                if (e.target === dialog) dialog.remove();
+            });
+        }
+
+        function showSyncSetupGuide() {
+            const existing = document.getElementById('customConfirmDialog');
+            if (existing) existing.remove();
+            
+            const dialog = document.createElement('div');
+            dialog.id = 'customConfirmDialog';
+            dialog.style.cssText = `
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px);
+                z-index: 9999; display: flex; align-items: center; justify-content: center;
+                padding: 1.5rem; overflow-y: auto;
+            `;
+            
+            dialog.innerHTML = `
+                <div style="background: #151933; border-radius: 20px; padding: 2rem; max-width: 500px; width: 100%; max-height: 85vh; overflow-y: auto; border: 1px solid rgba(0, 217, 255, 0.3);">
+                    <h3 style="background: linear-gradient(135deg, #00d9ff 0%, #7b61ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.5rem; margin-bottom: 1rem; font-family: 'Outfit', sans-serif;">☁️ iCloud Sync Setup</h3>
+                    
+                    <div style="color: #a0aec0; line-height: 1.7; font-family: 'Outfit', sans-serif; font-size: 0.9rem;">
+                        <p style="margin-bottom: 1rem; color: #fff;"><strong>How OpFlow Sync Works:</strong></p>
+                        <p style="margin-bottom: 1rem;">Web apps can't directly write to iCloud, but OpFlow uses iOS Share Sheet for 1-tap syncing.</p>
+                        
+                        <div style="background: rgba(0, 217, 255, 0.1); padding: 1rem; border-radius: 8px; margin: 1rem 0; border-left: 3px solid #00d9ff;">
+                            <p style="color: #00d9ff; font-weight: 600; margin-bottom: 0.5rem;">📱 First Time Setup (iPad/iPhone):</p>
+                            <ol style="padding-left: 1.2rem; line-height: 1.8;">
+                                <li>Open Files app → iCloud Drive</li>
+                                <li>Create folder named <strong style="color: #fff;">"OpFlow"</strong></li>
+                                <li>In OpFlow app, tap <strong style="color: #fff;">☁️ Sync</strong></li>
+                                <li>Select <strong style="color: #fff;">"Save to Files"</strong> → iCloud Drive → OpFlow</li>
+                                <li>Save as <strong style="color: #fff;">opflow-data.json</strong></li>
+                            </ol>
+                        </div>
+                        
+                        <div style="background: rgba(123, 97, 255, 0.1); padding: 1rem; border-radius: 8px; margin: 1rem 0; border-left: 3px solid #7b61ff;">
+                            <p style="color: #7b61ff; font-weight: 600; margin-bottom: 0.5rem;">🔄 Daily Use:</p>
+                            <ul style="padding-left: 1.2rem; line-height: 1.8;">
+                                <li>App reminds you to sync every 10 changes or 30 min</li>
+                                <li>Tap <strong style="color: #fff;">☁️ Sync</strong> → Save to same file (replaces old)</li>
+                                <li>On other device: tap <strong style="color: #fff;">📥 Load</strong> → Pick file from iCloud</li>
+                            </ul>
+                        </div>
+                        
+                        <div style="background: rgba(0, 230, 118, 0.1); padding: 1rem; border-radius: 8px; margin: 1rem 0; border-left: 3px solid #00e676;">
+                            <p style="color: #00e676; font-weight: 600; margin-bottom: 0.5rem;">✨ Pro Tip - iOS Shortcuts:</p>
+                            <p>Create an iOS Shortcut that opens OpFlow, then loads the file automatically. Add it to your Home Screen for true one-tap sync!</p>
+                        </div>
+                        
+                        <p style="margin-top: 1rem; font-size: 0.8rem; color: #64748b;">Status: <span id="syncStatusGuide" data-sync-status>Checking...</span></p>
+                    </div>
+                    
+                    <button id="setupClose" type="button" style="width: 100%; margin-top: 1rem; padding: 0.75rem; background: linear-gradient(135deg, #00d9ff 0%, #7b61ff 100%); border: none; border-radius: 12px; color: white; font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer;">Got It!</button>
+                </div>
+            `;
+            
+            document.body.appendChild(dialog);
+            updateSyncStatus();
+            
+            document.getElementById('setupClose').addEventListener('click', () => {
+                dialog.remove();
+            });
+        }
+
+        // Status Filter Function
+        function filterByStatus(status) {
+            statusFilter = status;
+            
+            // Update active state on stat cards
+            document.querySelectorAll('.stat-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            
+            if (status === 'all') {
+                document.getElementById('statAll').classList.add('active');
+            } else if (status === 'active') {
+                document.getElementById('statActive').classList.add('active');
+            } else if (status === 'completed') {
+                document.getElementById('statCompleted').classList.add('active');
+            } else if (status === 'high') {
+                document.getElementById('statHigh').classList.add('active');
+            }
+            
+            renderTasks();
+        }
+
+        // Multi-select Functions
+        function toggleMultiSelect() {
+            multiSelectMode = !multiSelectMode;
+            selectedTasks.clear();
+            
+            const container = document.getElementById('tasksContainer');
+            const btn = document.getElementById('multiSelectBtn');
+            const bulkBar = document.getElementById('bulkEditBar');
+            
+            if (multiSelectMode) {
+                container.classList.add('multi-select-mode');
+                btn.style.background = 'var(--accent-gradient)';
+                btn.style.color = 'white';
+            } else {
+                container.classList.remove('multi-select-mode');
+                btn.style.background = '';
+                btn.style.color = '';
+                bulkBar.classList.remove('active');
+            }
+            
+            renderTasks();
+        }
+
+        function toggleTaskSelection(taskId, event) {
+            if (!multiSelectMode) return;
+            
+            event.stopPropagation();
+            
+            if (selectedTasks.has(taskId)) {
+                selectedTasks.delete(taskId);
+            } else {
+                selectedTasks.add(taskId);
+            }
+            
+            updateBulkEditBar();
+            renderTasks();
+        }
+
+        function updateBulkEditBar() {
+            const bulkBar = document.getElementById('bulkEditBar');
+            const countEl = document.getElementById('selectedCount');
+            
+            countEl.textContent = selectedTasks.size;
+            
+            if (selectedTasks.size > 0) {
+                bulkBar.classList.add('active');
+            } else {
+                bulkBar.classList.remove('active');
+            }
+        }
+
+        function cancelMultiSelect() {
+            toggleMultiSelect();
+        }
+
+        function bulkEdit() {
+            if (selectedTasks.size === 0) return;
+            document.getElementById('bulkEditModal').classList.add('active');
+        }
+
+        function bulkDelete() {
+            if (selectedTasks.size === 0) return;
+            
+            showConfirmDialog(
+                'Delete Tasks?',
+                `Are you sure you want to delete ${selectedTasks.size} task(s)?`,
+                () => {
+                    tasks = tasks.filter(t => !selectedTasks.has(t.id));
+                    selectedTasks.clear();
+                    saveTasks();
+                    cancelMultiSelect();
+                },
+                { type: 'danger' }
+            );
+        }
+
+        function selectBulkPriority(priority, triggerEl = null) {
+            bulkPriorityValue = priority ? normalizePriority(priority) : '';
+            document.getElementById('bulkPriority').value = bulkPriorityValue;
+            updatePrioritySelection('bulkEditModal', bulkPriorityValue, triggerEl);
+        }
+
+        function applyBulkEdit(event) {
+            event.preventDefault();
+            
+            const priority = document.getElementById('bulkPriority').value;
+            const businessLine = document.getElementById('bulkBusinessLine').value;
+            
+            tasks = tasks.map(task => {
+                if (selectedTasks.has(task.id)) {
+                    return {
+                        ...task,
+                        priority: priority || task.priority,
+                        businessLine: businessLine || task.businessLine
+                    };
+                }
+                return task;
+            });
+            
+            saveTasks();
+            closeModal('bulkEditModal');
+            cancelMultiSelect();
+            
+            // Reset form
+            document.getElementById('bulkPriority').value = '';
+            document.getElementById('bulkBusinessLine').value = '';
+        }
+
+        // Filter functions
+        function toggleFilterMenu() {
+            const menu = document.getElementById('filterMenu');
+            if (menu.style.display === 'none') {
+                menu.style.display = 'block';
+                renderFilterChips();
+            } else {
+                menu.style.display = 'none';
+            }
+        }
+
+        function renderFilterChips() {
+            const container = document.getElementById('filterChips');
+            const businessLines = [...new Set(tasks.map(t => t.businessLine).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+            container.innerHTML = '';
+            businessLines.forEach(line => {
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                chip.className = `filter-chip ${activeFilters.has(line) ? 'active' : ''}`;
+                chip.textContent = line;
+                chip.addEventListener('click', () => toggleFilter(line));
+                container.appendChild(chip);
+            });
+        }
+
+        function toggleFilter(businessLine) {
+            if (activeFilters.has(businessLine)) {
+                activeFilters.delete(businessLine);
+            } else {
+                activeFilters.add(businessLine);
+            }
+            renderFilterChips();
+            renderTasks();
+        }
+
+        function clearFilters() {
+            activeFilters.clear();
+            renderFilterChips();
+            renderTasks();
+        }
+
+        // Apple Calendar Integration
+        function promptAddToCalendar(task) {
+            if (!task.dueDate) return;
+            const friendlyDate = new Date(task.dueDate + 'T00:00:00').toLocaleDateString();
+            showConfirmDialog('Add to Apple Calendar?', `Create a reminder for "${task.title}" on ${friendlyDate}?`, () => addToAppleCalendar(task), { type: 'info', icon: '📅', confirmText: 'Add Reminder', cancelText: 'Not Now' });
+        }
+
+        function addToAppleCalendar(task) {
+            try {
+                // Create ICS file format for calendar event
+                const dueDateTime = new Date(task.dueDate + 'T09:00:00'); // Default 9 AM
+                const endDateTime = new Date(dueDateTime.getTime() + 60 * 60 * 1000); // 1 hour duration
+                
+                // Validate date
+                if (isNaN(dueDateTime.getTime())) {
+                    showConfirmDialog('Invalid Date', 'The due date for this task is invalid.', null, { type: 'warning' });
+                    return;
+                }
+                
+                // Format dates for ICS
+                const formatICSDate = (date) => {
+                    return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+                };
+                
+                // Sanitize task data for ICS format
+                const safeTitle = escapeIcsText(task.title);
+                const safeNotes = escapeIcsText(task.notes || 'Task from OpFlow');
+                const safePriority = escapeIcsText(task.priority);
+                const safeBusinessLine = escapeIcsText(task.businessLine || 'N/A');
+                
+                const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//OpFlow//Task Reminder//EN
+BEGIN:VEVENT
+UID:${task.id}@opflow
+DTSTAMP:${formatICSDate(new Date())}
+DTSTART:${formatICSDate(dueDateTime)}
+DTEND:${formatICSDate(endDateTime)}
+SUMMARY:${safeTitle}
+DESCRIPTION:${safeNotes}\\nPriority: ${safePriority}\\nBusiness Line: ${safeBusinessLine}
+STATUS:CONFIRMED
+BEGIN:VALARM
+TRIGGER:-PT1H
+ACTION:DISPLAY
+DESCRIPTION:Reminder: ${safeTitle}
+END:VALARM
+END:VEVENT
+END:VCALENDAR`;
+                
+                // Create downloadable ICS file
+                const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `task-${task.id}.ics`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                showConfirmDialog('Error', 'Failed to create calendar event. Please try again.', null, { type: 'warning' });
+            }
+        }
+
+        // Improved Handwriting Recognition
+        function convertHandwritingToText() {
+            const text = document.getElementById('convertedText').value.trim();
+            if (!text) {
+                showConfirmDialog('Handwriting Tip', 'Write on the canvas, then type or refine the text in the box below for best results.', null, { type: 'info', icon: '✍️', confirmText: 'Got It' });
+            }
+        }
+
+        // Enhanced canvas with better stroke smoothing
+        function smoothStroke(points) {
+            if (points.length < 3) return points;
+            
+            const smoothed = [points[0]];
+            for (let i = 1; i < points.length - 1; i++) {
+                const prev = points[i - 1];
+                const curr = points[i];
+                const next = points[i + 1];
+                
+                smoothed.push({
+                    x: (prev.x + curr.x + next.x) / 3,
+                    y: (prev.y + curr.y + next.y) / 3,
+                    color: curr.color
+                });
+            }
+            smoothed.push(points[points.length - 1]);
+            return smoothed;
+        }
+
+        // Canvas variables
+        let canvas, ctx;
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        let currentColor = '#00d9ff';
+        let strokes = [];
+        let currentStroke = [];
+
+        // Initialize canvas
+        function initCanvas() {
+            canvas = document.getElementById('handwritingCanvas');
+            ctx = canvas.getContext('2d');
+            
+            ctx.strokeStyle = currentColor;
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            // Touch events
+            canvas.addEventListener('touchstart', startDrawing);
+            canvas.addEventListener('touchmove', draw);
+            canvas.addEventListener('touchend', stopDrawing);
+            
+            // Mouse events
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+        }
+
+        function startDrawing(e) {
+            e.preventDefault();
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches ? e.touches[0] : e;
+            lastX = touch.clientX - rect.left;
+            lastY = touch.clientY - rect.top;
+            currentStroke = [{x: lastX, y: lastY, color: currentColor}];
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            e.preventDefault();
+            
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches ? e.touches[0] : e;
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+
+            ctx.strokeStyle = currentColor;
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+
+            currentStroke.push({x, y, color: currentColor});
+            lastX = x;
+            lastY = y;
+        }
+
+        function stopDrawing() {
+            if (isDrawing && currentStroke.length > 0) {
+                strokes.push([...currentStroke]);
+            }
+            isDrawing = false;
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            strokes = [];
+            document.getElementById('convertedText').value = '';
+        }
+
+        function undoCanvas() {
+            if (strokes.length > 0) {
+                strokes.pop();
+                redrawCanvas();
+            }
+        }
+
+        function redrawCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            strokes.forEach(stroke => {
+                if (stroke.length === 0) return;
+                ctx.strokeStyle = stroke[0].color;
+                ctx.beginPath();
+                ctx.moveTo(stroke[0].x, stroke[0].y);
+                for (let i = 1; i < stroke.length; i++) {
+                    ctx.lineTo(stroke[i].x, stroke[i].y);
+                }
+                ctx.stroke();
+            });
+        }
+
+        function changeCanvasColor(color) {
+            currentColor = color;
+        }
+
+        // Task functions
+        function saveTasks(options = {}) {
+            const { countAsChange = true, rerender = true, showReminder = true } = options;
+            try {
+                tasks = normalizeTaskList(tasks);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({ tasks: tasks, lastModified: new Date().toISOString(), version: 1 }));
+                if (countAsChange) changesSinceLastSync++;
+                saveSyncMeta();
+                if (rerender) { renderTasks(); updateStats(); }
+                updateSyncStatus();
+                if (showReminder) scheduleAutoSync();
+                return true;
+            } catch (error) {
+                showConfirmDialog('Storage Error', 'Unable to save data locally. Your browser storage may be full or unavailable.', null, { type: 'warning' });
+                return false;
+            }
+        }
+
+        function addTask(event) {
+            event.preventDefault();
+            const title = document.getElementById('taskTitle').value.trim();
+            const notes = document.getElementById('taskNotes').value.trim();
+            const priority = document.getElementById('taskPriority').value;
+            const businessLine = document.getElementById('taskBusinessLine').value;
+            const dueDate = document.getElementById('taskDueDate').value;
+            if (title && businessLine) {
+                const newTask = normalizeTask({ id: generateTaskId(), title, notes, priority, businessLine, dueDate, completed: false, createdAt: new Date().toISOString() });
+                if (!newTask) return;
+                tasks.push(newTask);
+                if (saveTasks()) {
+                    closeModal('addTaskModal');
+                    if (newTask.dueDate) promptAddToCalendar(newTask);
+                    document.getElementById('taskTitle').value = '';
+                    document.getElementById('taskNotes').value = '';
+                    document.getElementById('taskBusinessLine').value = '';
+                    document.getElementById('taskDueDate').value = '';
+                    selectPriority('medium');
+                }
+            }
+        }
+
+        function addHandwrittenTask() {
+            const text = document.getElementById('convertedText').value.trim();
+            const priority = document.getElementById('handwritingPriority').value;
+            const businessLine = document.getElementById('handwritingBusinessLine').value;
+            if (text && businessLine) {
+                const newTask = normalizeTask({ id: generateTaskId(), title: text, notes: 'Added via handwriting', priority, businessLine, dueDate: '', completed: false, createdAt: new Date().toISOString() });
+                if (!newTask) return;
+                tasks.push(newTask);
+                if (saveTasks()) {
+                    closeModal('handwritingModal');
+                    clearCanvas();
+                    document.getElementById('convertedText').value = '';
+                    document.getElementById('handwritingBusinessLine').value = '';
+                    selectHandwritingPriority('medium');
+                }
+            }
+        }
+
+        function toggleTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                saveTasks();
+            }
+        }
+
+        function deleteTask(id) {
+            // Find the task first
+            const task = tasks.find(t => t.id === id);
+            if (!task) return;
+            
+            // Show custom confirmation modal (window.confirm doesn't work in iframes)
+            showConfirmDialog(
+                'Delete Task?',
+                task.title,
+                () => {
+                    tasks = tasks.filter(t => t.id !== id);
+                    saveTasks();
+                },
+                { type: 'danger' }
+            );
+        }
+
+        // Custom confirmation dialog that works in all contexts (including iframes)
+        /**
+         * Context-aware dialog function
+         * @param {string} title - Dialog title
+         * @param {string} message - Dialog message
+         * @param {Function|null} onConfirm - Callback on confirm (null = info-only dialog)
+         * @param {Object} options - Optional config
+         * @param {string} options.type - 'danger' | 'info' | 'success' | 'warning' (default: 'info')
+         * @param {string} options.confirmText - Button text (default varies by type)
+         * @param {string} options.cancelText - Cancel button text (default: 'Cancel')
+         * @param {string} options.icon - Custom icon/emoji
+         */
+        function showConfirmDialog(title, message, onConfirm, options = {}) {
+            // Remove any existing confirm dialog
+            const existing = document.getElementById('customConfirmDialog');
+            if (existing) existing.remove();
+            
+            // Determine dialog type
+            const type = options.type || (onConfirm ? 'info' : 'info');
+            const isInfoOnly = !onConfirm;
+            
+            // Type-based styling
+            const typeConfig = {
+                danger: {
+                    titleColor: '#ff3864',
+                    confirmBg: 'linear-gradient(135deg, #ff3864 0%, #ff6b9d 100%)',
+                    confirmShadow: '0 4px 12px rgba(255, 56, 100, 0.3)',
+                    defaultIcon: '🗑️',
+                    defaultConfirmText: 'Delete'
+                },
+                warning: {
+                    titleColor: '#ffa500',
+                    confirmBg: 'linear-gradient(135deg, #ffa500 0%, #ffcc00 100%)',
+                    confirmShadow: '0 4px 12px rgba(255, 165, 0, 0.3)',
+                    defaultIcon: '⚠️',
+                    defaultConfirmText: 'Continue'
+                },
+                success: {
+                    titleColor: '#00e676',
+                    confirmBg: 'linear-gradient(135deg, #00e676 0%, #00d9ff 100%)',
+                    confirmShadow: '0 4px 12px rgba(0, 230, 118, 0.3)',
+                    defaultIcon: '✓',
+                    defaultConfirmText: 'OK'
+                },
+                info: {
+                    titleColor: '#00d9ff',
+                    confirmBg: 'linear-gradient(135deg, #00d9ff 0%, #7b61ff 100%)',
+                    confirmShadow: '0 4px 12px rgba(0, 217, 255, 0.3)',
+                    defaultIcon: 'ℹ️',
+                    defaultConfirmText: 'OK'
+                }
+            };
+            
+            const config = typeConfig[type] || typeConfig.info;
+            const icon = options.icon || config.defaultIcon;
+            const confirmText = options.confirmText || config.defaultConfirmText;
+            const cancelText = options.cancelText || 'Cancel';
+            
+            // Create dialog
+            const dialog = document.createElement('div');
+            dialog.id = 'customConfirmDialog';
+            dialog.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.8);
+                backdrop-filter: blur(10px);
+                z-index: 9999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 1.5rem;
+                animation: fadeIn 0.2s ease;
+            `;
+            
+            // Build buttons HTML based on dialog type
+            let buttonsHtml;
+            if (isInfoOnly) {
+                // Info-only dialog: single OK button
+                buttonsHtml = `
+                    <button id="confirmOk" type="button" style="
+                        width: 100%;
+                        padding: 0.75rem;
+                        background: ${config.confirmBg};
+                        border: none;
+                        border-radius: 12px;
+                        color: white;
+                        font-family: 'Outfit', sans-serif;
+                        font-size: 0.95rem;
+                        font-weight: 600;
+                        cursor: pointer;
+                        box-shadow: ${config.confirmShadow};
+                    ">${confirmText}</button>
+                `;
+            } else {
+                // Confirmation dialog: Cancel + Confirm buttons
+                buttonsHtml = `
+                    <div style="display: flex; gap: 0.75rem;">
+                        <button id="confirmCancel" type="button" style="
+                            flex: 1;
+                            padding: 0.75rem;
+                            background: #1e2340;
+                            border: 1px solid rgba(255, 255, 255, 0.1);
+                            border-radius: 12px;
+                            color: white;
+                            font-family: 'Outfit', sans-serif;
+                            font-size: 0.95rem;
+                            font-weight: 600;
+                            cursor: pointer;
+                        ">${cancelText}</button>
+                        <button id="confirmOk" type="button" style="
+                            flex: 1;
+                            padding: 0.75rem;
+                            background: ${config.confirmBg};
+                            border: none;
+                            border-radius: 12px;
+                            color: white;
+                            font-family: 'Outfit', sans-serif;
+                            font-size: 0.95rem;
+                            font-weight: 600;
+                            cursor: pointer;
+                            box-shadow: ${config.confirmShadow};
+                        ">${confirmText}</button>
+                    </div>
+                `;
+            }
+            
+            dialog.innerHTML = `
+                <div style="
+                    background: #151933;
+                    border-radius: 20px;
+                    padding: 2rem;
+                    max-width: 400px;
+                    width: 100%;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+                    animation: slideUp 0.3s ease;
+                ">
+                    <h3 style="
+                        color: ${config.titleColor};
+                        font-size: 1.25rem;
+                        margin-bottom: 1rem;
+                        font-family: 'Outfit', sans-serif;
+                    ">${icon} ${escapeHtml(title)}</h3>
+                    <p style="
+                        color: #a0aec0;
+                        margin-bottom: 1.5rem;
+                        line-height: 1.5;
+                        font-family: 'Outfit', sans-serif;
+                        word-wrap: break-word;
+                    ">${escapeHtml(message)}</p>
+                    ${buttonsHtml}
+                </div>
+            `;
+            
+            document.body.appendChild(dialog);
+            
+            // Add event listeners
+            if (!isInfoOnly) {
+                document.getElementById('confirmCancel').addEventListener('click', () => {
+                    dialog.remove();
+                });
+            }
+            
+            document.getElementById('confirmOk').addEventListener('click', () => {
+                dialog.remove();
+                if (onConfirm) onConfirm();
+            });
+            
+            // Close on backdrop click
+            dialog.addEventListener('click', (e) => {
+                if (e.target === dialog) {
+                    dialog.remove();
+                }
+            });
+        }
+
+        function editTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (!task) return;
+            document.getElementById('editTaskId').value = task.id;
+            document.getElementById('editTaskTitle').value = task.title;
+            document.getElementById('editTaskBusinessLine').value = task.businessLine || '';
+            document.getElementById('editTaskNotes').value = task.notes || '';
+            document.getElementById('editTaskDueDate').value = task.dueDate || '';
+            document.getElementById('editTaskPriority').value = task.priority;
+            updatePrioritySelection('editTaskModal', task.priority);
+            document.getElementById('editTaskModal').classList.add('active');
+        }
+
+        function selectEditPriority(priority, triggerEl = null) {
+            const safePriority = normalizePriority(priority);
+            document.getElementById('editTaskPriority').value = safePriority;
+            updatePrioritySelection('editTaskModal', safePriority, triggerEl);
+        }
+
+        function saveEditTask(event) {
+            event.preventDefault();
+            const id = parseInt(document.getElementById('editTaskId').value);
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                const normalized = normalizeTask({ ...task, title: document.getElementById('editTaskTitle').value.trim(), businessLine: document.getElementById('editTaskBusinessLine').value, notes: document.getElementById('editTaskNotes').value.trim(), dueDate: document.getElementById('editTaskDueDate').value, priority: document.getElementById('editTaskPriority').value });
+                if (!normalized) return;
+                Object.assign(task, normalized);
+                if (saveTasks()) closeModal('editTaskModal');
+            }
+        }
+
+        function clearCompleted() {
+            const completedCount = tasks.filter(t => t.completed).length;
+            if (completedCount === 0) return;
+            
+            showConfirmDialog(
+                'Clear Completed?',
+                `Remove ${completedCount} completed task(s)?`,
+                () => {
+                    tasks = tasks.filter(t => !t.completed);
+                    saveTasks();
+                },
+                { type: 'danger' }
+            );
+        }
+
+        function sortTasks(method, btnElement) {
+            currentSort = method;
+            
+            // Update button states
+            document.querySelectorAll('.sort-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            if (btnElement) {
+                btnElement.classList.add('active');
+            }
+            
+            renderTasks();
+        }
+
+        function getSortedTasks() {
+            const tasksCopy = [...tasks];
+            
+            switch(currentSort) {
+                case 'priority':
+                    const priorityOrder = { high: 0, medium: 1, low: 2 };
+                    return tasksCopy.sort((a, b) => {
+                        if (a.completed !== b.completed) return a.completed ? 1 : -1;
+                        return priorityOrder[a.priority] - priorityOrder[b.priority];
+                    });
+                    
+                case 'business':
+                    return tasksCopy.sort((a, b) => {
+                        if (a.completed !== b.completed) return a.completed ? 1 : -1;
+                        const businessA = a.businessLine || 'Uncategorized';
+                        const businessB = b.businessLine || 'Uncategorized';
+                        return businessA.localeCompare(businessB);
+                    });
+                    
+                case 'status':
+                    return tasksCopy.sort((a, b) => {
+                        if (a.completed !== b.completed) return a.completed ? 1 : -1;
+                        return new Date(b.createdAt) - new Date(a.createdAt);
+                    });
+                    
+                case 'date':
+                    return tasksCopy.sort((a, b) => {
+                        // Completed tasks go last
+                        if (a.completed !== b.completed) return a.completed ? 1 : -1;
+                        
+                        // Tasks WITHOUT due dates go to the bottom
+                        const hasDateA = a.dueDate && a.dueDate.trim() !== '';
+                        const hasDateB = b.dueDate && b.dueDate.trim() !== '';
+                        
+                        if (!hasDateA && !hasDateB) return 0;
+                        if (!hasDateA) return 1;  // a goes after b
+                        if (!hasDateB) return -1; // a goes before b
+                        
+                        // Both have dates - sort ascending (earliest due first)
+                        return new Date(a.dueDate) - new Date(b.dueDate);
+                    });
+                    
+                default:
+                    return tasksCopy;
+            }
+        }
+
+        function renderTasks() {
+            const container = document.getElementById('tasksContainer');
+            let sortedTasks = getSortedTasks();
+            
+            // Apply business line filters
+            if (activeFilters.size > 0) {
+                sortedTasks = sortedTasks.filter(task => 
+                    activeFilters.has(task.businessLine) || task.completed
+                );
+            }
+            
+            // Apply status filter
+            if (statusFilter === 'active') {
+                sortedTasks = sortedTasks.filter(task => !task.completed);
+            } else if (statusFilter === 'completed') {
+                sortedTasks = sortedTasks.filter(task => task.completed);
+            } else if (statusFilter === 'high') {
+                sortedTasks = sortedTasks.filter(task => !task.completed && task.priority === 'high');
+            }
+            // 'all' shows everything
+            
+            if (sortedTasks.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📝</div>
+                        <div class="empty-text">No tasks ${activeFilters.size > 0 || statusFilter !== 'all' ? 'match your filters' : 'yet'}</div>
+                        <div class="empty-subtext">${activeFilters.size > 0 || statusFilter !== 'all' ? 'Try adjusting your filters' : 'Add your first task to get started'}</div>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            let currentSection = '';
+
+            sortedTasks.forEach(task => {
+                let section = '';
+                
+                if (currentSort === 'priority') {
+                    section = task.completed ? 'Completed' : task.priority.charAt(0).toUpperCase() + task.priority.slice(1) + ' Priority';
+                } else if (currentSort === 'business') {
+                    section = task.completed ? 'Completed' : (task.businessLine || 'Uncategorized');
+                } else if (currentSort === 'status') {
+                    section = task.completed ? 'Completed' : 'Active';
+                } else if (currentSort === 'date') {
+                    if (task.completed) {
+                        section = 'Completed';
+                    } else if (!task.dueDate || task.dueDate.trim() === '') {
+                        section = 'No Due Date';
+                    } else {
+                        const now = new Date();
+                        now.setHours(0, 0, 0, 0);
+                        const due = new Date(task.dueDate);
+                        due.setHours(0, 0, 0, 0);
+                        const daysDiff = Math.floor((due - now) / (1000 * 60 * 60 * 24));
+                        
+                        if (daysDiff < 0) section = 'Overdue';
+                        else if (daysDiff === 0) section = 'Due Today';
+                        else if (daysDiff <= 7) section = 'This Week';
+                        else if (daysDiff <= 30) section = 'This Month';
+                        else section = 'Later';
+                    }
+                } else {
+                    section = task.completed ? 'Completed' : 'All Tasks';
+                }
+
+                if (section !== currentSection) {
+                    html += `<div class="section-title">${section}</div>`;
+                    currentSection = section;
+                }
+
+                html += `
+                    <div class="task-item ${task.completed ? 'completed' : ''} priority-${task.priority}">
+                        <div class="task-header">
+                            ${multiSelectMode ? `
+                                <div class="task-select-checkbox ${selectedTasks.has(task.id) ? 'selected' : ''}" 
+                                     data-action="select" data-task-id="${task.id}"></div>
+                            ` : ''}
+                            <div class="task-checkbox ${task.completed ? 'checked' : ''}" 
+                                 data-action="${multiSelectMode ? 'none' : 'toggle'}" data-task-id="${task.id}"></div>
+                            <div class="task-content">
+                                <div class="task-title">${escapeHtml(task.title)}</div>
+                                ${task.notes ? `<div class="task-notes">${escapeHtml(task.notes).replace(/\n/g, '<br>')}</div>` : ''}
+                                <div class="task-meta">
+                                    <span class="priority-badge ${task.priority}">${escapeHtml(task.priority)}</span>
+                                    ${task.businessLine ? `<span class="business-badge">${escapeHtml(task.businessLine)}</span>` : ''}
+                                    ${task.dueDate ? `<span class="due-date-badge" data-action="calendar" data-task-id="${task.id}">📅 ${new Date(task.dueDate).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}</span>` : ''}
+                                    <div class="task-actions">
+                                        <button type="button" class="task-action-btn" data-action="edit" data-task-id="${task.id}">✏️ Edit</button>
+                                        <button type="button" class="task-action-btn" data-action="delete" data-task-id="${task.id}">🗑️ Delete</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+            // Event listeners are attached once via delegation (see initializeEventDelegation)
+        }
+
+        // Single event delegation handler - attached once, handles all task interactions
+        function initializeEventDelegation() {
+            const container = document.getElementById('tasksContainer');
+            if (!container || container._delegated) return;
+            container._delegated = true;
+            
+            container.addEventListener('click', function(e) {
+                const target = e.target.closest('[data-action]');
+                if (!target) return;
+                
+                e.stopPropagation();
+                const action = target.getAttribute('data-action');
+                const taskId = parseInt(target.getAttribute('data-task-id'));
+                
+                if (isNaN(taskId)) return;
+                
+                switch(action) {
+                    case 'delete':
+                        deleteTask(taskId);
+                        break;
+                    case 'edit':
+                        editTask(taskId);
+                        break;
+                    case 'toggle':
+                        toggleTask(taskId);
+                        break;
+                    case 'select':
+                        toggleTaskSelection(taskId, e);
+                        break;
+                    case 'calendar':
+                        const task = tasks.find(t => t.id === taskId);
+                        if (task) promptAddToCalendar(task);
+                        break;
+                }
+            });
+        }
+
+        function updateStats() {
+            const total = tasks.length;
+            const active = tasks.filter(t => !t.completed).length;
+            const completed = tasks.filter(t => t.completed).length;
+            const highPriority = tasks.filter(t => !t.completed && t.priority === 'high').length;
+
+            document.getElementById('totalTasks').textContent = total;
+            document.getElementById('activeTasks').textContent = active;
+            document.getElementById('completedTasks').textContent = completed;
+            document.getElementById('highPriority').textContent = highPriority;
+        }
+
+        function selectPriority(priority, triggerEl = null) {
+            selectedPriorityValue = normalizePriority(priority);
+            document.getElementById('taskPriority').value = selectedPriorityValue;
+            updatePrioritySelection('addTaskModal', selectedPriorityValue, triggerEl);
+        }
+
+        function selectHandwritingPriority(priority, triggerEl = null) {
+            handwritingPriorityValue = normalizePriority(priority);
+            document.getElementById('handwritingPriority').value = handwritingPriorityValue;
+            updatePrioritySelection('handwritingModal', handwritingPriorityValue, triggerEl);
+        }
+
+        function openAddTaskModal() {
+            document.getElementById('addTaskModal').classList.add('active');
+        }
+
+        function openHandwritingModal() {
+            document.getElementById('handwritingModal').classList.add('active');
+            if (!canvas) {
+                initCanvas();
+            }
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Close modal when clicking outside
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Initialize event delegation for task actions
+            initializeEventDelegation();
+            
+            // Load sync metadata
+            loadSyncMeta();
+            
+            // Load tasks from local storage
+            const loadedFromCloud = await loadFromICloud();
+            
+            if (!loadedFromCloud) {
+                    saveTasks({ countAsChange: false, showReminder: false });
+                }
+            
+            filterByStatus('all');
+            renderTasks();
+            updateStats();
+            updateSyncStatus();
+            
+            // Update sync status every minute
+            setInterval(updateSyncStatus, 60000);
+            
+            // Show first-time setup if never synced
+            if (!lastSyncTime && tasks.length > 0) {
+                setTimeout(() => {
+                    showConfirmDialog(
+                        'Welcome to OpFlow!',
+                        'To sync your tasks across devices, set up iCloud sync. Tap the Setup button to learn how.',
+                        null,
+                        { type: 'info', icon: '👋', confirmText: 'Got It' }
+                    );
+                }, 1500);
+            }
+        });
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.classList.remove('active');
+                });
+                const customDialog = document.getElementById('customConfirmDialog');
+                if (customDialog) { customDialog.remove(); }
+            }
+            if (e.key === 'n' && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault();
+                openAddTaskModal();
+            }
+        });
+    </script>
+</body>
+</html>
