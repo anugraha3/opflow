@@ -2,12 +2,21 @@
                             OPFLOW - CHANGELOG
 ================================================================================
 
-Current Version: v1.0.0
+Current Version: v1.0.1
 Release Date:    April 23, 2026
 
 ================================================================================
                               VERSION HISTORY
 ================================================================================
+
+# Changelog
+
+## v1.0.1 - 2026-04-23
+- Patched priority selection bugs across Add, Edit, Handwriting, and Bulk Edit
+- Hardened imported/local task data with task normalization and validation
+- Removed unsafe inline filter chip rendering to reduce injection risk
+- Unified remaining native alert/confirm prompts into custom dialogs
+- Fixed duplicate sync status hook and improved local save error handling
 
 --------------------------------------------------------------------------------
 v1.0.0 - April 23, 2026  [CURRENT]
