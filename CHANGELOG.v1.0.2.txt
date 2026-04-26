@@ -1,0 +1,152 @@
+================================================================================
+                            OPFLOW - CHANGELOG
+================================================================================
+
+Current Version: v1.0.2
+Release Date:    April 26, 2026
+
+================================================================================
+                              VERSION HISTORY
+================================================================================
+
+--------------------------------------------------------------------------------
+v1.0.2 - April 26, 2026  [CURRENT]
+--------------------------------------------------------------------------------
+
+CRITICAL FIXES:
+- Priority selection now works when called programmatically
+  (Previous bug: 'event.target' threw error when functions were called
+  from JavaScript code rather than direct user clicks - e.g., when
+  resetting forms after task creation)
+- Removed remaining native alert() and confirm() calls
+  (These fail silently in iframe/PWA contexts, causing buttons to 
+  appear non-functional. Replaced with custom dialogs and toasts.)
+
+SECURITY HARDENING:
+- Added comprehensive task data validation and normalization
+  - All tasks normalized on load, save, and import
+  - Invalid tasks are filtered out, not silently included
+  - ID collisions auto-resolved with new generated IDs
+- Replaced unsafe innerHTML in filter chip rendering with safe DOM
+  construction (createElement + textContent)
+- Hardened ID generation using crypto.getRandomValues for collision
+  resistance (was: simple Date.now() which could collide)
+- Added input length limits to prevent UI breakage:
+  - Title: 500 characters
+  - Notes: 5000 characters
+- Strict priority validation (only 'high'/'medium'/'low' allowed)
+- Strict business line validation (only ESP/PCP/CPS/TLM/Other)
+- Date format validation (must be YYYY-MM-DD)
+
+UX IMPROVEMENTS:
+- Added validation feedback with helpful toast messages:
+  - "Task title is required"
+  - "Please select a business line"  
+  - "Title too long (max 500 chars)"
+- Added confirmation toasts for successful operations:
+  - "Task added"
+  - "Task updated"
+  - "Updated X tasks" (bulk edit)
+- Field focus automatically moves to error fields
+- Calendar reminder uses styled custom dialog instead of native confirm
+- Handwriting tip uses smooth toast instead of jarring alert
+
+STABILITY IMPROVEMENTS:
+- saveTasks() now returns success/failure status
+- Storage errors show user-facing warnings instead of silent failures
+- All task data is normalized at every entry point
+- Priority selection helper function (updatePrioritySelection) reused
+  across all 4 modals for consistency
+
+CREDIT WHERE DUE:
+This release acknowledges and incorporates valid security audit findings 
+from a competitor's v1.0.1 release. While we adopted their bug fixes, 
+v1.0.2 goes beyond by adding user-facing feedback that was missing from 
+their version.
+
+--------------------------------------------------------------------------------
+v1.0.0 - April 23, 2026
+--------------------------------------------------------------------------------
+- Added version tracking system with badge in header
+- Fixed date sorting - now sorts by due date (earliest first)
+- Added smart date grouping (Overdue, Due Today, This Week, This Month, Later)
+- Added TLM as business line option
+- Replaced blocking dialogs with smooth toast notifications
+- Added auto-sync reminder after 30s of inactivity
+- Improved sync reliability with multi-tier fallback system
+
+--------------------------------------------------------------------------------
+v0.9.0 - April 22, 2026
+--------------------------------------------------------------------------------
+- Context-aware dialog system (danger/warning/success/info types)
+- Fixed delete button functionality (custom dialog for iframe compatibility)
+- Added sync conflict detection with smart resolution
+- Added Google Drive / iCloud Drive integration via Share Sheet
+- Implemented Smart Sync system with change tracking
+- Added sync status indicator in UI
+
+--------------------------------------------------------------------------------
+v0.8.0 - April 21, 2026
+--------------------------------------------------------------------------------
+- Added due date field (optional) for each task
+- Added Apple Calendar export (.ics file generation)
+- Added multi-select mode with bulk edit capabilities
+- Added business line filtering with interactive chips
+- Restructured modals with fixed header/footer layout
+- Added harmonized scrollbar styling
+- Security improvements: XSS protection, input sanitization
+- Improved delete button reliability with event delegation
+
+--------------------------------------------------------------------------------
+v0.7.0 - April 20, 2026
+--------------------------------------------------------------------------------
+- Initial release of OpFlow
+- Task management with priority levels (High/Medium/Low)
+- Business line categorization (ESP, PCP, CPS, Other)
+- Interactive dashboard with stat card filters
+- Handwriting input canvas
+- Responsive design for iPad and iPhone
+- Dark theme with cyan/purple gradient accents
+- Custom OpFlow logo design
+
+================================================================================
+                            VERSIONING SCHEME
+================================================================================
+
+OpFlow follows Semantic Versioning (MAJOR.MINOR.PATCH):
+
+  MAJOR  - Breaking changes or major redesigns (e.g., v1.x.x -> v2.0.0)
+  MINOR  - New features, backwards compatible (e.g., v1.0.x -> v1.1.0)
+  PATCH  - Bug fixes only (e.g., v1.0.0 -> v1.0.1)
+
+================================================================================
+                              DEPLOYMENT NOTES
+================================================================================
+
+File naming convention: index.vX.Y.Z.html
+
+To deploy:
+  1. Download index.vX.Y.Z.html
+  2. Rename to index.html (required by GitHub Pages)
+  3. Upload to GitHub repository
+  4. Wait 1-2 minutes for GitHub Pages to redeploy
+  5. Hard refresh browser to see new version
+
+Data storage:
+  - Local: Browser localStorage (device-specific)
+  - Cloud: Manual sync via Google Drive / iCloud Drive
+  - Backup: Export as opflow-data.json
+
+================================================================================
+                          TECHNICAL DEBT TRACKER
+================================================================================
+
+Known limitations of web app architecture (cannot fix without native app):
+- Cannot auto-write to iCloud Drive in background
+- Cannot sync without manual user action
+- File handles don't persist across sessions on iOS Safari
+- Service Worker background sync not supported on iOS
+
+These are addressed via the best-effort manual sync workflow.
+
+================================================================================
