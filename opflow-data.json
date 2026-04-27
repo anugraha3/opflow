@@ -1,0 +1,237 @@
+{
+  "tasks": [
+    {
+      "id": 1776927258788,
+      "title": "CPS Capex PO",
+      "notes": "3. Ensure we get approval this time",
+      "priority": "high",
+      "businessLine": "CPS",
+      "dueDate": "2026-04-26",
+      "completed": false,
+      "createdAt": "2026-04-23T06:54:18.788Z"
+    },
+    {
+      "id": 1776927999714,
+      "title": "LH Development Cost Summary",
+      "notes": "Create cost summary of KWT LH Development project similar to Mumarasa",
+      "priority": "high",
+      "businessLine": "CPS",
+      "dueDate": "2026-04-26",
+      "completed": false,
+      "createdAt": "2026-04-23T07:06:39.714Z"
+    },
+    {
+      "id": 1776928076211,
+      "title": "Close action item related to LH Development 26",
+      "notes": "Send email confirmation to PSD and PNSC of the 3 action:\na. Get quote and approval for Wiper Plug - done\nb. Confirmation for shipment with Luke for Ultra Dropship\nc. Another confirmation is for OSC shipment with LUKE",
+      "priority": "high",
+      "businessLine": "CPS",
+      "dueDate": "",
+      "completed": true,
+      "createdAt": "2026-04-23T07:07:56.211Z"
+    },
+    {
+      "id": 1776928188295,
+      "title": "OPG FMT Out (50 ESP + Cable)",
+      "notes": "0. There is still pending system transaction from TLM\n0.1 TLM and MM needs to give packing details to PNSC before we can start the next process.\n\n\n1. Consolidate document list for Bala to prepare the Export document as required by OPG team\n2. Check internally for the movement and write up requireed\n3. Check with OPG team if they have set up the asset reactivation",
+      "priority": "high",
+      "businessLine": "ESP",
+      "dueDate": "2026-04-27",
+      "completed": false,
+      "createdAt": "2026-04-23T07:09:48.295Z"
+    },
+    {
+      "id": 1776928486150,
+      "title": "MnS PO CPS",
+      "notes": "1. Verify the table from Islam, is there existing Sales Deals for the material numbers\n2. If sales deals are available, raised the order directly through SAP",
+      "priority": "medium",
+      "businessLine": "CPS",
+      "dueDate": "2026-04-25",
+      "completed": false,
+      "createdAt": "2026-04-23T07:14:46.150Z"
+    },
+    {
+      "id": 1776928561858,
+      "title": "KW07 to KW02 Asset transfer",
+      "notes": "There are 10 asset to be transferred from KW07 to KW02.\n1. Trial FLM movement for Asset is completed, but asset is not moving. check and verify this process is completed before moving the other 9",
+      "priority": "medium",
+      "businessLine": "CPS",
+      "dueDate": "2026-04-23",
+      "completed": true,
+      "createdAt": "2026-04-23T07:16:01.858Z"
+    },
+    {
+      "id": 1776928650562,
+      "title": "PCP Oman demand planning",
+      "notes": "1. MENA planned to consolidate all PCP demand through OPG to be ordered to PCM.\n2. RC needs to complete the PN pricing comparison and the demand for each PN",
+      "priority": "low",
+      "businessLine": "PCP",
+      "dueDate": "2026-04-30",
+      "completed": false,
+      "createdAt": "2026-04-23T07:17:30.562Z"
+    },
+    {
+      "id": 1776928699380,
+      "title": "Cable arrival schedule",
+      "notes": "There is a request for estimate cable arrival from TLM. \nthis is aligned with the in and out we need to do for cable anyway, but currently its lower priority",
+      "priority": "low",
+      "businessLine": "Other",
+      "dueDate": "2026-04-28",
+      "completed": true,
+      "createdAt": "2026-04-23T07:18:19.380Z"
+    },
+    {
+      "id": 1776928749348,
+      "title": "OpFlow Review",
+      "notes": "Feature to add/fix:\n1. Sync feature do not work, it still manual download json, save to folder, and load it. it should be background process.\n2. Add TLM as business line",
+      "priority": "medium",
+      "businessLine": "Other",
+      "dueDate": "2026-04-24",
+      "completed": false,
+      "createdAt": "2026-04-23T07:19:09.348Z"
+    },
+    {
+      "id": 1776928802923,
+      "title": "Vmonitor PO Replacement",
+      "notes": "there is pending PO replacement for VMonitor.\nthis is PO for PST to Voltamp.\nPending PN Creation by HQ",
+      "priority": "high",
+      "businessLine": "ESP",
+      "dueDate": "2026-04-23",
+      "completed": true,
+      "createdAt": "2026-04-23T07:20:02.923Z"
+    },
+    {
+      "id": 1776928849491,
+      "title": "Voltamp Transformer PO",
+      "notes": "1. PIR created\n1.1. In-and-out done\n1.2 Review in detail with Hani\n2. Once completed, create PO for the transformer as a set (PST + SUT) based on the balance",
+      "priority": "high",
+      "businessLine": "ESP",
+      "dueDate": "2026-04-26",
+      "completed": true,
+      "createdAt": "2026-04-23T07:20:49.491Z"
+    },
+    {
+      "id": 1776928905001,
+      "title": "VSD Spares PO Expediting for direct sales",
+      "notes": "There are 4 remaining item in Mostafa direct sales opportunity:\n1. Capacitor\n2. Heatsink Fan\n3. Gatedrive board\n4. Surge protector\n\nEnsure we have enough on hand and expedite arrival",
+      "priority": "medium",
+      "businessLine": "ESP",
+      "dueDate": "2026-04-27",
+      "completed": false,
+      "createdAt": "2026-04-23T07:21:45.001Z"
+    },
+    {
+      "id": 1776928968392,
+      "title": "RAK June Qty",
+      "notes": "1. We need to lower the inventory by 500k. \n2. Review and reduce june qty based on the latest in-and-out, we can take extra qty in july",
+      "priority": "low",
+      "businessLine": "ESP",
+      "dueDate": "2026-05-01",
+      "completed": false,
+      "createdAt": "2026-04-23T07:22:48.392Z"
+    },
+    {
+      "id": 1776929012995,
+      "title": "MLE Forecast",
+      "notes": "1. need to review and update MLE forecast for H2 26\n2. consider in-transit qty and latest forecast\n3. consider transition to OPG",
+      "priority": "medium",
+      "businessLine": "ESP",
+      "dueDate": "2026-05-10",
+      "completed": false,
+      "createdAt": "2026-04-23T07:23:32.995Z"
+    },
+    {
+      "id": 1776929052839,
+      "title": "CPS KWT Planned Order Past Due",
+      "notes": "Candy sent an email regarding CPS KWT Planned order that are past due.\ncheck and confirm them",
+      "priority": "high",
+      "businessLine": "CPS",
+      "dueDate": "2026-04-23",
+      "completed": true,
+      "createdAt": "2026-04-23T07:24:12.839Z"
+    },
+    {
+      "id": 1776929425621,
+      "title": "TLM Capex PO",
+      "notes": "Check at\nCreate po\nCheck with islam",
+      "priority": "medium",
+      "businessLine": "Other",
+      "dueDate": "2026-04-27",
+      "completed": false,
+      "createdAt": "2026-04-23T07:30:25.621Z"
+    },
+    {
+      "id": 1776929500585,
+      "title": "ChampionX PO",
+      "notes": "ChampionX has pronto be replaced.\nMark said he created PIR.\nNeed to create PO replacement",
+      "priority": "low",
+      "businessLine": "Other",
+      "dueDate": "2026-04-29",
+      "completed": false,
+      "createdAt": "2026-04-23T07:31:40.585Z"
+    },
+    {
+      "id": 1776929601367,
+      "title": "KWT Q2 AR approval",
+      "notes": "AR was pending approval with Blake. Need to send a reminder if he can approve it now after esm intervention",
+      "priority": "high",
+      "businessLine": "ESP",
+      "dueDate": "2026-04-26",
+      "completed": false,
+      "createdAt": "2026-04-23T07:33:21.367Z"
+    },
+    {
+      "id": 1776931222955,
+      "title": "Cost tracking LH Development",
+      "notes": "1. Update the item pending at hub with Dubai and sg hub data. \n2. Add hub information groupings",
+      "priority": "high",
+      "businessLine": "CPS",
+      "dueDate": "2026-04-23",
+      "completed": false,
+      "createdAt": "2026-04-23T08:00:22.955Z"
+    },
+    {
+      "id": 1776933858979,
+      "title": "Monthly Capitalization",
+      "notes": "1. Apr Capitalization: PSD review check if anyone commented, if not submit it today.\n2. Apr Capitalization : pending Illumina and in service date, check ESP data today if the team submitted or not.",
+      "priority": "high",
+      "businessLine": "ESP",
+      "dueDate": "2026-04-23",
+      "completed": false,
+      "createdAt": "2026-04-23T08:44:18.979Z"
+    },
+    {
+      "id": 1776934814219,
+      "title": "Daily monitoring of critical shipment",
+      "notes": "1. Y-Tool at Oman : pending NOC with Ellaine\n2. Gauge : confirm if we received yesterday and how many\n3. Y-Tool next shipments : IBD Reversal done, is collection planned?\n4. Shipment from China hub. Where are they and have we received more?\n5. MLE shipment : confirm eta with tim",
+      "priority": "high",
+      "businessLine": "ESP",
+      "dueDate": "2026-04-23",
+      "completed": false,
+      "createdAt": "2026-04-23T09:00:14.219Z"
+    },
+    {
+      "id": 1777187841240662,
+      "title": "SPE July Capacity Confirmation",
+      "notes": "•\tAction : review & push out or cancel\n•\tComplete by 4/28 or earlier",
+      "priority": "high",
+      "businessLine": "ESP",
+      "dueDate": "2026-04-27",
+      "completed": true,
+      "createdAt": "2026-04-26T07:17:21.240Z"
+    },
+    {
+      "id": 1777283016401818,
+      "title": "Additional Asset movement KW07 to KW02",
+      "notes": "1. There are additional 205 Yellow asset to be moved\n2. There are 82 Red asset to be written Off",
+      "priority": "low",
+      "businessLine": "TLM",
+      "dueDate": "2026-05-04",
+      "completed": false,
+      "createdAt": "2026-04-27T09:43:36.401Z"
+    }
+  ],
+  "exportDate": "2026-04-27T09:44:11.938Z",
+  "version": 1,
+  "appName": "OpFlow"
+}

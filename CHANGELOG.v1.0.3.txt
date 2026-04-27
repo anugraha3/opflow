@@ -1,0 +1,208 @@
+================================================================================
+                            OPFLOW - CHANGELOG
+================================================================================
+
+Current Version: v1.0.3
+Release Date:    April 27, 2026
+
+================================================================================
+                              VERSION HISTORY
+================================================================================
+
+--------------------------------------------------------------------------------
+v1.0.3 - April 27, 2026  [CURRENT]
+--------------------------------------------------------------------------------
+
+NEW FEATURES:
+- Added ChampionX as a new business line category
+  Business lines: ESP, PCP, CPS, TLM, ChampionX, Other
+
+MAJOR FIX: HANDWRITING CANVAS REBUILT FROM SCRATCH
+
+The handwriting canvas had multiple critical issues causing poor Apple Pencil
+tracking. After research into web canvas best practices for stylus input, the
+entire canvas system has been rebuilt.
+
+Root causes of poor accuracy (now fixed):
+
+1. WRONG COORDINATES (CRITICAL):
+   - Canvas had fixed internal resolution (800x400) but displayed at different
+     CSS size on iPad. Touch coordinates were not scaled to match.
+   - Result: Pen drew far from where you touched.
+   - Fix: Canvas resolution now dynamically matches display size multiplied
+     by devicePixelRatio (Retina-aware). Coordinates are now exact.
+
+2. TOUCH EVENTS INSTEAD OF POINTER EVENTS (CRITICAL):
+   - Apple Pencil sends 240Hz pointer events on iPad.
+   - Touch events only deliver ~60Hz, dropping 3 out of 4 pen positions.
+   - Result: Visible gaps and jitter in fast strokes.
+   - Fix: Migrated to Pointer Events API. Now using getCoalescedEvents() to
+     capture ALL pen positions including those between animation frames.
+
+3. JAGGED POLYGON LINES:
+   - Previous code used ctx.lineTo() between recorded points.
+   - Result: Curves looked like polygons with sharp corners.
+   - Fix: Now using quadraticCurveTo() with midpoint smoothing (industry
+     standard for freehand drawing). Strokes are mathematically smooth.
+
+4. PAGE SCROLLING WHILE DRAWING:
+   - touch-action CSS was incomplete.
+   - Result: iPad sometimes scrolled the page during pen strokes.
+   - Fix: Comprehensive touch-action: none with -webkit-touch-callout
+     and tap-highlight disabled.
+
+5. NO PRESSURE SENSITIVITY:
+   - Apple Pencil pressure data was completely ignored.
+   - Result: Strokes looked uniform and unnatural.
+   - Fix: Line width now varies dynamically with pen pressure
+     (BASE_LINE_WIDTH=2.5px, +4px multiplier from pressure).
+
+6. NO PALM REJECTION:
+   - Multiple touches could interfere with the pen stroke.
+   - Result: Erratic lines when palm rested on screen.
+   - Fix: setPointerCapture() locks input to the active pen pointer.
+     Other touches are now ignored.
+
+7. CANVAS RENDERING LATENCY:
+   - Default canvas rendering syncs with main thread.
+   - Result: Visible lag between pen movement and ink appearing.
+   - Fix: Canvas context now uses { desynchronized: true } for low-latency
+     rendering bypass.
+
+TECHNICAL DETAILS:
+
+The new canvas uses these modern web APIs:
+- PointerEvent API (replaces TouchEvent + MouseEvent unified handling)
+- getCoalescedEvents() for high-frequency capture (Pointer Events Level 3)
+- setPointerCapture() / releasePointerCapture() for input locking
+- Canvas2D desynchronized context option for reduced latency
+- devicePixelRatio scaling for sharp Retina rendering
+- quadraticCurveTo() with midpoint control for stroke smoothing
+
+Compatibility:
+- Apple Pencil (1st, 2nd gen, Pro): Full 240Hz capture with pressure
+- Finger touch: Smooth strokes with default 0.5 pressure
+- Mouse (desktop): Legacy fallback path with same smoothing
+- Browsers: All modern browsers (Pointer Events supported since 2019)
+
+References for the curious:
+- Apple Developer Forum: 240Hz Apple Pencil pointer events on iPadOS
+- W3C Pointer Events Level 3 specification
+- MDN getCoalescedEvents() documentation
+- York's Bezier Curves for Smooth Freehand Drawing on Canvas
+
+--------------------------------------------------------------------------------
+v1.0.2 - April 26, 2026
+--------------------------------------------------------------------------------
+
+CRITICAL FIXES:
+- Priority selection now works when called programmatically
+  (Previous bug: 'event.target' threw error when functions were called
+  from JavaScript code rather than direct user clicks)
+- Removed remaining native alert() and confirm() calls
+  (These fail silently in iframe/PWA contexts)
+
+SECURITY HARDENING:
+- Added comprehensive task data validation and normalization
+- Replaced unsafe innerHTML in filter chip rendering with safe DOM
+- Hardened ID generation using crypto.getRandomValues
+- Added input length limits (title: 500, notes: 5000 characters)
+- Strict priority validation (only 'high'/'medium'/'low' allowed)
+- Strict business line validation
+- Date format validation (must be YYYY-MM-DD)
+
+UX IMPROVEMENTS:
+- Added validation feedback with helpful toast messages
+- Added confirmation toasts for successful operations
+- Field focus automatically moves to error fields
+- Calendar reminder uses styled custom dialog instead of native confirm
+
+STABILITY:
+- saveTasks() returns success/failure status
+- Storage errors show user-facing warnings
+- All task data normalized at every entry point
+
+--------------------------------------------------------------------------------
+v1.0.0 - April 23, 2026
+--------------------------------------------------------------------------------
+- Added version tracking system with badge in header
+- Fixed date sorting - now sorts by due date (earliest first)
+- Added smart date grouping (Overdue, Due Today, This Week, This Month, Later)
+- Added TLM as business line option
+- Replaced blocking dialogs with smooth toast notifications
+- Added auto-sync reminder after 30s of inactivity
+
+--------------------------------------------------------------------------------
+v0.9.0 - April 22, 2026
+--------------------------------------------------------------------------------
+- Context-aware dialog system (danger/warning/success/info types)
+- Fixed delete button functionality (custom dialog for iframe compatibility)
+- Added sync conflict detection with smart resolution
+- Added Google Drive / iCloud Drive integration via Share Sheet
+
+--------------------------------------------------------------------------------
+v0.8.0 - April 21, 2026
+--------------------------------------------------------------------------------
+- Added due date field (optional) for each task
+- Added Apple Calendar export (.ics file generation)
+- Added multi-select mode with bulk edit capabilities
+- Added business line filtering with interactive chips
+
+--------------------------------------------------------------------------------
+v0.7.0 - April 20, 2026
+--------------------------------------------------------------------------------
+- Initial release of OpFlow
+- Task management with priority levels (High/Medium/Low)
+- Business line categorization (ESP, PCP, CPS, Other)
+- Interactive dashboard with stat card filters
+- Handwriting input canvas
+- Dark theme with cyan/purple gradient accents
+
+================================================================================
+                            VERSIONING SCHEME
+================================================================================
+
+OpFlow follows Semantic Versioning (MAJOR.MINOR.PATCH):
+
+  MAJOR  - Breaking changes or major redesigns (e.g., v1.x.x -> v2.0.0)
+  MINOR  - New features, backwards compatible (e.g., v1.0.x -> v1.1.0)
+  PATCH  - Bug fixes only (e.g., v1.0.0 -> v1.0.1)
+
+================================================================================
+                              DEPLOYMENT NOTES
+================================================================================
+
+File naming convention: index.vX.Y.Z.html
+
+To deploy:
+  1. Download index.vX.Y.Z.html
+  2. Rename to index.html (required by GitHub Pages)
+  3. Upload to GitHub repository
+  4. Wait 1-2 minutes for GitHub Pages to redeploy
+  5. Hard refresh browser to see new version
+
+For best handwriting experience on iPad:
+  1. Settings > Apple Pencil > disable "Scribble" (optional, for consistency)
+  2. Settings > Safari > disable "Prefer Page Rendering Updates near 60fps"
+     (this enables the full 120Hz refresh on ProMotion displays)
+  3. Ensure Low Power Mode is OFF for full 240Hz capture rate
+
+Data storage:
+  - Local: Browser localStorage (device-specific)
+  - Cloud: Manual sync via Google Drive / iCloud Drive
+  - Backup: Export as opflow-data.json
+
+================================================================================
+                          TECHNICAL DEBT TRACKER
+================================================================================
+
+Known limitations of web app architecture (cannot fix without native app):
+- Cannot auto-write to iCloud Drive in background
+- Cannot sync without manual user action
+- File handles don't persist across sessions on iOS Safari
+- Service Worker background sync not supported on iOS
+- Apple Pencil hover (12mm proximity) not exposed to web apps
+
+These are accepted trade-offs for a zero-cost, no-server PWA solution.
+
+================================================================================
