@@ -1,0 +1,189 @@
+================================================================================
+                            OPFLOW - CHANGELOG
+================================================================================
+
+Current Version: v1.0.4
+Release Date:    April 29, 2026
+
+================================================================================
+                              VERSION HISTORY
+================================================================================
+
+--------------------------------------------------------------------------------
+v1.0.4 - April 29, 2026  [CURRENT]
+--------------------------------------------------------------------------------
+
+NEW FEATURE: PERSON IN CHARGE (PIC)
+
+Added a complete delegation tracking system. When tasks need to be done by
+someone other than yourself, you can now assign them to a Person In Charge.
+
+WHAT WAS ADDED:
+- PIC field on all 4 task forms (Add, Edit, Bulk Edit, Handwriting)
+- Hybrid dropdown: predefined people + "+ Add new person..." option
+- "People" button in main controls for managing your name and PIC list
+- PIC sort option - your tasks appear first, others alphabetical
+- PIC filter chips - quickly see "all tasks for Ahmed" 
+- PIC badge on task cards (orange for others, green for your own)
+- First-time setup prompt to set your name (default: "Me")
+- Bulk reassign - move multiple tasks to a different PIC at once
+
+PRIVACY DESIGN:
+- All PIC names stored in browser localStorage only
+- GitHub repository contains zero personal names
+- PIC list never leaves your devices unless you sync via Google Drive
+
+DATA INTEGRITY:
+- All PIC inputs length-capped at 50 characters
+- Maximum 30 people in your PIC list (configurable)
+- PIC field validated and normalized on every save/load
+- Existing tasks without PIC field auto-default to your name
+
+CRITICAL QC NOTE:
+The first attempt at v1.0.4 shipped with a duplicate `let activePicFilters`
+declaration that broke the entire script - causing 14 cascading errors
+where every onclick handler appeared "not defined". This release fixes
+that and adds a QC validation script to prevent the same class of bug:
+  - Detects duplicate top-level let/const declarations
+  - Cross-references HTML handlers vs function definitions  
+  - Validates JavaScript syntax via Node.js before release
+  - Checks for undefined identifier references
+  - Verifies privacy invariants (no business data, empty defaults)
+
+Lessons learned and process changes:
+  - Never declare "done" without running a syntax check
+  - Verification scripts must catch duplicates, not just count occurrences
+  - Refactors that touch the same area twice need a final consolidation pass
+
+--------------------------------------------------------------------------------
+v1.0.3 - April 27, 2026
+--------------------------------------------------------------------------------
+
+MAJOR FIX: HANDWRITING CANVAS REBUILT FROM SCRATCH
+
+After research into web canvas best practices for stylus input, the entire
+canvas system was rebuilt to fix poor Apple Pencil tracking.
+
+Root causes fixed:
+1. Wrong coordinates - canvas resolution didn't match display size
+2. Touch events at 60Hz - missed 75% of Apple Pencil's 240Hz signal
+3. Jagged polygon lines - replaced with quadratic Bezier smoothing
+4. Page scrolled while drawing - comprehensive touch-action: none
+5. No pressure sensitivity - line width now varies with pen pressure
+6. No palm rejection - setPointerCapture() locks to active pen
+7. Default sync rendering - desynchronized canvas context for low latency
+
+Other changes:
+- Added ChampionX as new business line category
+
+--------------------------------------------------------------------------------
+v1.0.2 - April 26, 2026
+--------------------------------------------------------------------------------
+
+CRITICAL FIXES:
+- Priority selection now works when called programmatically
+- Removed remaining native alert() and confirm() calls
+
+SECURITY HARDENING:
+- Added comprehensive task data validation and normalization
+- Replaced unsafe innerHTML in filter chip rendering with safe DOM
+- Hardened ID generation using crypto.getRandomValues
+- Added input length limits (title: 500, notes: 5000 characters)
+- Strict priority and business line validation
+
+UX IMPROVEMENTS:
+- Toast feedback for all task actions
+- Field focus on validation errors
+- Custom dialog for calendar reminder
+
+--------------------------------------------------------------------------------
+v1.0.0 - April 23, 2026
+--------------------------------------------------------------------------------
+- Added version tracking system with badge in header
+- Fixed date sorting - sorts by due date (earliest first)
+- Smart date grouping (Overdue, Due Today, This Week, This Month, Later)
+- Added TLM as business line option
+- Replaced blocking dialogs with toast notifications
+
+--------------------------------------------------------------------------------
+v0.9.0 - April 22, 2026
+--------------------------------------------------------------------------------
+- Context-aware dialog system (danger/warning/success/info types)
+- Fixed delete button functionality
+- Added sync conflict detection
+- Google Drive / iCloud Drive integration via Share Sheet
+
+--------------------------------------------------------------------------------
+v0.8.0 - April 21, 2026
+--------------------------------------------------------------------------------
+- Due date field with Apple Calendar export
+- Multi-select mode with bulk edit
+- Business line filtering with chips
+
+--------------------------------------------------------------------------------
+v0.7.0 - April 20, 2026
+--------------------------------------------------------------------------------
+- Initial release with handwriting input
+- Priority-based task management
+- Interactive dashboard with stat filters
+
+================================================================================
+                            VERSIONING SCHEME
+================================================================================
+
+OpFlow follows Semantic Versioning (MAJOR.MINOR.PATCH):
+
+  MAJOR  - Breaking changes or major redesigns (e.g., v1.x.x -> v2.0.0)
+  MINOR  - New features, backwards compatible (e.g., v1.0.x -> v1.1.0)
+  PATCH  - Bug fixes only (e.g., v1.0.0 -> v1.0.1)
+
+================================================================================
+                          FIRST-TIME SETUP CHECKLIST
+================================================================================
+
+After deploying v1.0.4 to GitHub:
+
+1. Open OpFlow on your iPhone/iPad
+2. App will prompt: "What should I call you?"
+3. Tap "Set Name" - opens People settings
+4. Type "Azi" (or your preferred name) - Save
+5. Now your default PIC will be "Azi" instead of "Me"
+6. Add new people via task forms or People settings as needed
+
+================================================================================
+                              DEPLOYMENT NOTES
+================================================================================
+
+File naming convention: index.vX.Y.Z.html
+
+To deploy:
+  1. Download index.vX.Y.Z.html
+  2. Rename to index.html (required by GitHub Pages)
+  3. Upload to GitHub repository
+  4. Wait 1-2 minutes for GitHub Pages to redeploy
+  5. Hard refresh browser to see new version
+
+Data storage:
+  - Local: Browser localStorage (device-specific)
+  - Cloud: Manual sync via Google Drive / iCloud Drive
+  - Backup: Export as opflow-data.json
+
+PIC list storage:
+  - Stored in localStorage on each device separately
+  - Sync across devices is via the same opflow-data.json file
+  - Your name and PIC list are NOT in the GitHub repository
+
+================================================================================
+                          TECHNICAL DEBT TRACKER
+================================================================================
+
+Known limitations of web app architecture (cannot fix without native app):
+- Cannot auto-write to iCloud Drive in background
+- Cannot sync without manual user action
+- File handles don't persist across sessions on iOS Safari
+- Service Worker background sync not supported on iOS
+- Apple Pencil hover (12mm proximity) not exposed to web apps
+
+These are accepted trade-offs for a zero-cost, no-server PWA solution.
+
+================================================================================
